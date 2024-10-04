@@ -189,6 +189,9 @@
             // Add winnings to balance
             balance += winnings;
 
+            // Highlight winning slots
+            highlightWinningSlots(counts);
+
             // Show the winning key
             document.getElementById('winKey').style.display = 'block';
 
@@ -201,6 +204,17 @@
                 balance = 0;
                 document.getElementById('balance').innerText = balance;
             }
+        }
+
+        function highlightWinningSlots(counts) {
+            const slotElements = document.querySelectorAll('.column');
+            slotElements.forEach((element, index) => {
+                if (counts[element.innerText] >= 2) {
+                    element.style.border = "3px solid orange"; // Highlight border
+                } else {
+                    element.style.border = "3px solid white"; // Reset border
+                }
+            });
         }
     </script>
 
