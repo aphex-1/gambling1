@@ -114,28 +114,36 @@
             spinning = true;
 
             // Start the spinning animation
+            let spinDuration = 2000; // Duration of spin in milliseconds
+            let spinInterval = 100; // Interval for updating slots
+            let spins = Math.floor(spinDuration / spinInterval); // Number of spins
+
+            let slotResults = []; // Store results for calculating winnings
+
             for (let i = 0; i < slotElements.length; i++) {
-                let randomSymbol = getRandomSymbol();
-                slotElements[i].innerText = randomSymbol;
-                // Add the spin class for animation
-                slotElements[i].classList.add('spin');
+                slotResults[i] = []; // Initialize results for each column
             }
 
-            // Update balance immediately
-            document.getElementById('balance').innerText = balance;
+            let spinCounter = 0;
 
-            // Simulate spinning effect
-            setTimeout(() => {
+            const spinAnimation = setInterval(() => {
                 for (let i = 0; i < slotElements.length; i++) {
                     let randomSymbol = getRandomSymbol();
                     slotElements[i].innerText = randomSymbol;
+                    slotResults[i].push(randomSymbol); // Store each result
                 }
-                // Stop the spinning animation
-                spinning = false;
+                spinCounter++;
 
-                // Calculate winnings based on results
-                calculateWinnings(slotElements);
-            }, 1000); // Duration of the spin animation
+                // Stop spinning after a set duration
+                if (spinCounter >= spins) {
+                    clearInterval(spinAnimation);
+                    spinning = false;
+                    calculateWinnings(slotResults);
+                }
+            }, spinInterval);
+
+            // Update balance immediately
+            document.getElementById('balance').innerText = balance;
         }
 
         function getRandomSymbol() {
@@ -143,8 +151,8 @@
             return symbols[Math.floor(Math.random() * symbols.length)];
         }
 
-        function calculateWinnings(slotElements) {
-            const results = Array.from(slotElements).map(slot => slot.innerText);
+        function calculateWinnings(slotResults) {
+            const results = slotResults.map(column => column[column.length - 1]); // Get the last result for each column
             let winnings = 0;
 
             // Winning logic
@@ -179,27 +187,6 @@
             }
         }
     </script>
-
-    <style>
-        /* Improved spinning animation */
-        @keyframes spin {
-            0% { transform: translateY(0); }
-            10% { transform: translateY(-10px); }
-            20% { transform: translateY(-20px); }
-            30% { transform: translateY(-30px); }
-            40% { transform: translateY(-40px); }
-            50% { transform: translateY(-50px); }
-            60% { transform: translateY(-40px); }
-            70% { transform: translateY(-30px); }
-            80% { transform: translateY(-20px); }
-            90% { transform: translateY(-10px); }
-            100% { transform: translateY(0); }
-        }
-
-        .column.spin {
-            animation: spin 1s ease-in-out infinite; /* Apply the spin animation */
-        }
-    </style>
 
 </body>
 </html>
