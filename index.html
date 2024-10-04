@@ -47,6 +47,11 @@
         .money-counter {
             margin-top: 30px;
         }
+
+        @keyframes spin {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-600px); }
+        }
     </style>
 </head>
 <body>
@@ -76,35 +81,61 @@
         // Sound effect for spinning
         const spinSound = new Audio('https://www.soundjay.com/button/sounds/button-3.mp3');
 
+        // Function to scroll and animate the columns
+        function animateSpin() {
+            for (let i = 1; i <= 5; i++) {
+                let column = document.getElementById('column' + i);
+                column.style.animation = 'spin 0.5s ease-in-out infinite';
+
+                // Stop animation after 2 seconds
+                setTimeout(() => {
+                    column.style.animation = '';
+                }, 2000);
+            }
+        }
+
         document.getElementById('spin-button').addEventListener('click', () => {
             let betAmount = parseInt(document.getElementById('bet').value);
-            if (betAmount > money) {
-                alert('Insufficient funds!');
+            if (betAmount > money || betAmount <= 0) {
+                alert('Invalid bet! Make sure you have enough money and bet more than 0.');
                 return;
             }
 
-            spinSound.play(); // Play spin sound
+            spinSound.play(); // Play spin sound when spin button is clicked
 
-            // Randomize each column
-            for (let i = 1; i <= 5; i++) {
-                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
-                document.getElementById('column' + i).textContent = randomSymbol;
-            }
+            // Animate the spin
+            animateSpin();
 
-            // Money counter logic (this is where you can add win/loss conditions)
-            money -= betAmount;
-            document.getElementById('money').textContent = money;
+            // Randomize each column after the animation delay
+            setTimeout(() => {
+                for (let i = 1; i <= 5; i++) {
+                    const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                    document.getElementById('column' + i).textContent = randomSymbol;
+                }
 
-            // Example win condition (if all symbols match, double the bet)
-            const columns = [];
-            for (let i = 1; i <= 5; i++) {
-                columns.push(document.getElementById('column' + i).textContent);
-            }
-            if (new Set(columns).size === 1) {
-                alert('Jackpot! You win ' + betAmount * 10 + '!');
-                money += betAmount * 10;
+                // Money counter logic (update balance after spin)
+                money -= betAmount;
                 document.getElementById('money').textContent = money;
-            }
+
+                // Check for win conditions
+                const columns = [];
+                for (let i = 1; i <= 5; i++) {
+                    columns.push(document.getElementById('column' + i).textContent);
+                }
+
+                // Win chances (higher chance for small wins)
+                if (new Set(columns).size <= 3) { // More lenient condition for small wins
+                    const winAmount = betAmount * (Math.random() < 0.7 ? 2 : 5); // Higher bets win more
+                    alert('You win $' + winAmount + '!');
+                    money += winAmount;
+                    document.getElementById('money').textContent = money;
+                }
+
+                if (money <= 0) {
+                    alert("You're out of money! Game over.");
+                    document.getElementById('spin-button').disabled = true; // Disable button when out of money
+                }
+            }, 2000); // Delay for animation (2 seconds)
         });
     </script>
 
