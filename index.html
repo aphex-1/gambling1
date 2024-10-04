@@ -204,6 +204,13 @@
                     if (symbol === '🍉') winnings += 45; // Three Watermelons
                     if (symbol === '🍍') winnings += 30; // Three Pineapples
                     if (symbol === '🍒') winnings += 15; // Three Cherries
+                } else {
+                    // Calculate winnings for pairs
+                    if (count === 2) {
+                        if (symbol === '🍒') winnings += 10; // Two Cherries
+                        if (symbol === '🍍') winnings += 20; // Two Pineapples
+                        if (symbol === '🍉') winnings += 30; // Two Watermelons
+                    }
                 }
             }
 
@@ -239,10 +246,12 @@
 
         function displayWinMessage(winnings) {
             const winMessage = document.getElementById('winMessage');
-            winMessage.innerText = `You won $${winnings}!`;
+            winMessage.innerText = `You won $${winnings}`;
             winMessage.style.display = 'block';
+
+            // Hide message after 3 seconds
             setTimeout(() => {
-                winMessage.style.display = 'none'; // Hide after a delay
+                winMessage.style.display = 'none';
             }, 3000);
         }
     </script>
