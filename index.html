@@ -218,17 +218,18 @@
             }
 
             // Highlight winning slots
-            highlightWinningSlots(counts);
+            highlightWinningSlots(counts, winnings > 0);
 
             // Show the winning key
             document.getElementById('winKey').style.display = 'block';
             document.getElementById('balance').innerText = balance;
         }
 
-        function highlightWinningSlots(counts) {
+        function highlightWinningSlots(counts, hasWinnings) {
             const slotElements = document.querySelectorAll('.column');
             slotElements.forEach((element) => {
-                if (counts[element.innerText] >= 2) {
+                // Only highlight if there are winnings and the symbol is a winning one
+                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
                     element.classList.add('highlight');
                 } else {
                     element.classList.remove('highlight');
