@@ -29,6 +29,7 @@
             justify-content: center;
             align-items: center;
             overflow: hidden; /* Hide overflowing content */
+            position: relative; /* Relative positioning for animation */
         }
 
         #spin-button {
@@ -60,56 +61,39 @@
             color: black;
             display: none; /* Hide by default */
         }
-
-        /* Additional styles to fill space */
-        .container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-height: 100vh; /* Fill the full height of the viewport */
-            justify-content: center; /* Center content vertically */
-        }
-
-        .slot-machine {
-            margin-bottom: 20px; /* Add spacing below the slot machine */
-        }
     </style>
 </head>
 <body>
 
     <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
 
-    <div class="container">
-        <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
+    <div class="slot-machine">
+        <div class="column" id="slot1">🍒</div>
+        <div class="column" id="slot2">🍍</div>
+        <div class="column" id="slot3">🍉</div>
+        <div class="column" id="slot4">BAR</div>
+        <div class="column" id="slot5">7</div>
+    </div>
 
-        <div class="slot-machine">
-            <div class="column" id="slot1">🍒</div>
-            <div class="column" id="slot2">🍍</div>
-            <div class="column" id="slot3">🍉</div>
-            <div class="column" id="slot4">BAR</div>
-            <div class="column" id="slot5">7</div>
-        </div>
+    <button id="spin-button" onclick="spin()">Spin</button>
 
-        <button id="spin-button" onclick="spin()">Spin</button>
+    <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
 
-        <div id="winKey">
-            <h3>Winning Key</h3>
-            <p>🍒 - $5</p>
-            <p>🍍 - $10</p>
-            <p>🍉 - $15</p>
-            <p>BAR - $20</p>
-            <p>7 - $50</p>
-            <p>Two 7's - $100</p>
-            <p>Three 7's - $200</p>
-            <p>🍋 - $2</p>
-            <p>🍊 - $3</p>
-            <p>❌ - $0 (losing symbol)</p>
-        </div>
+    <div id="winKey">
+        <h3>Winning Key</h3>
+        <p>🍒 - $5</p>
+        <p>🍍 - $10</p>
+        <p>🍉 - $15</p>
+        <p>BAR - $20</p>
+        <p>7 - $50</p>
+        <p>Two 7's - $100</p>
+        <p>Three 7's - $200</p>
     </div>
 
     <script>
         let balance = 100; // Starting balance
         let bet = 10; // Default bet amount
+        let spinning = false; // Spinning state
 
         function spin() {
             // Play sound
@@ -124,33 +108,39 @@
 
             // Deduct the bet amount from balance
             balance -= bet;
-            document.getElementById('balance').innerText = balance;
 
             // Start animation
             const slotElements = document.querySelectorAll('.column');
-            slotElements.forEach(slot => {
-                slot.classList.add('spinning'); // Start spinning animation
-            });
+            spinning = true;
 
+            // Start the spinning animation
+            for (let i = 0; i < slotElements.length; i++) {
+                let randomSymbol = getRandomSymbol();
+                slotElements[i].innerText = randomSymbol;
+                // Add the spin class for animation
+                slotElements[i].classList.add('spin');
+            }
+
+            // Update balance immediately
+            document.getElementById('balance').innerText = balance;
+
+            // Simulate spinning effect
             setTimeout(() => {
-                // Stop animation
-                slotElements.forEach(slot => {
-                    slot.classList.remove('spinning');
-                });
-
-                // Randomize slot results
-                const symbols = ["🍒", "🍍", "🍉", "BAR", "7", "🍋", "🍊", "❌"];
-                slotElements.forEach(slot => {
-                    const randomIndex = Math.floor(Math.random() * symbols.length);
-                    slot.innerText = symbols[randomIndex];
-                });
-
-                // Show the winning key
-                document.getElementById('winKey').style.display = 'block';
+                for (let i = 0; i < slotElements.length; i++) {
+                    let randomSymbol = getRandomSymbol();
+                    slotElements[i].innerText = randomSymbol;
+                }
+                // Stop the spinning animation
+                spinning = false;
 
                 // Calculate winnings based on results
                 calculateWinnings(slotElements);
-            }, 800); // Match duration of the animation
+            }, 1000); // Duration of the spin animation
+        }
+
+        function getRandomSymbol() {
+            const symbols = ["🍒", "🍍", "🍉", "BAR", "7", "🍏", "🍇", "🍋"];
+            return symbols[Math.floor(Math.random() * symbols.length)];
         }
 
         function calculateWinnings(slotElements) {
@@ -171,14 +161,14 @@
             if (counts['🍉'] >= 3) winnings += 45; // Three Watermelons
             if (counts['🍍'] >= 3) winnings += 30; // Three Pineapples
             if (counts['🍒'] >= 3) winnings += 15; // Three Cherries
-            if (counts['🍋'] >= 3) winnings += 10; // Three Lemons
-            if (counts['🍊'] >= 3) winnings += 5; // Three Oranges
-            
-            // Reduce the winnings if there is a losing symbol
-            if (counts['❌'] > 0) winnings -= bet; // If there is a losing symbol, lose the bet amount
 
             // Add winnings to balance
             balance += winnings;
+
+            // Show the winning key
+            document.getElementById('winKey').style.display = 'block';
+
+            // Update balance on screen
             document.getElementById('balance').innerText = balance;
 
             // Reset bet if balance goes below zero
@@ -189,4 +179,27 @@
             }
         }
     </script>
-</body
+
+    <style>
+        /* Improved spinning animation */
+        @keyframes spin {
+            0% { transform: translateY(0); }
+            10% { transform: translateY(-10px); }
+            20% { transform: translateY(-20px); }
+            30% { transform: translateY(-30px); }
+            40% { transform: translateY(-40px); }
+            50% { transform: translateY(-50px); }
+            60% { transform: translateY(-40px); }
+            70% { transform: translateY(-30px); }
+            80% { transform: translateY(-20px); }
+            90% { transform: translateY(-10px); }
+            100% { transform: translateY(0); }
+        }
+
+        .column.spin {
+            animation: spin 1s ease-in-out infinite; /* Apply the spin animation */
+        }
+    </style>
+
+</body>
+</html>
