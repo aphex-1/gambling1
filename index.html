@@ -51,6 +51,17 @@
             font-size: 2rem;
         }
 
+        .bet-amount {
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            font-size: 1.5rem;
+            width: 100px;
+        }
+
         #winKey {
             position: absolute;
             top: 10px;
@@ -75,6 +86,10 @@
         <div class="column" id="slot5">7</div>
     </div>
 
+    <div class="bet-amount">
+        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
+    </div>
+
     <button id="spin-button" onclick="spin()">Spin</button>
 
     <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
@@ -95,12 +110,18 @@
         let bet = 10; // Default bet amount
         let spinning = false; // Spinning state
 
+        // Customizable variables
+        const SPIN_DURATION = 1500; // Duration of spin in milliseconds
+        const SPIN_INTERVAL = 100; // Interval for updating slots
+        const WINNING_ODDS = 0.3; // Adjust this value (0 to 1) to change winning odds
+
         function spin() {
             // Play sound
             const spinSound = document.getElementById('spinSound');
             spinSound.play();
 
             // Check if the user can play
+            bet = parseInt(document.getElementById('betInput').value, 10);
             if (balance <= 0) {
                 alert("You're out of money! Please reload to continue.");
                 return;
@@ -114,23 +135,13 @@
             spinning = true;
 
             // Start the spinning animation
-            let spinDuration = 2000; // Duration of spin in milliseconds
-            let spinInterval = 100; // Interval for updating slots
-            let spins = Math.floor(spinDuration / spinInterval); // Number of spins
-
-            let slotResults = []; // Store results for calculating winnings
-
-            for (let i = 0; i < slotElements.length; i++) {
-                slotResults[i] = []; // Initialize results for each column
-            }
-
+            let spins = Math.floor(SPIN_DURATION / SPIN_INTERVAL); // Number of spins
             let spinCounter = 0;
 
             const spinAnimation = setInterval(() => {
                 for (let i = 0; i < slotElements.length; i++) {
                     let randomSymbol = getRandomSymbol();
                     slotElements[i].innerText = randomSymbol;
-                    slotResults[i].push(randomSymbol); // Store each result
                 }
                 spinCounter++;
 
@@ -138,9 +149,9 @@
                 if (spinCounter >= spins) {
                     clearInterval(spinAnimation);
                     spinning = false;
-                    calculateWinnings(slotResults);
+                    calculateWinnings();
                 }
-            }, spinInterval);
+            }, SPIN_INTERVAL);
 
             // Update balance immediately
             document.getElementById('balance').innerText = balance;
@@ -151,24 +162,29 @@
             return symbols[Math.floor(Math.random() * symbols.length)];
         }
 
-        function calculateWinnings(slotResults) {
-            const results = slotResults.map(column => column[column.length - 1]); // Get the last result for each column
+        function calculateWinnings() {
+            const results = [];
+            const slotElements = document.querySelectorAll('.column');
+            slotElements.forEach(element => results.push(element.innerText)); // Get results from each column
+
             let winnings = 0;
 
-            // Winning logic
+            // Winning logic with adjustable odds
             const counts = {};
             results.forEach(result => {
                 counts[result] = (counts[result] || 0) + 1;
             });
 
-            // Check for winning combinations
-            if (counts['7'] >= 3) winnings += 200; // Three 7's
-            else if (counts['7'] === 2) winnings += 100; // Two 7's
-            if (counts['BAR'] >= 3) winnings += 60; // Three BARs
-            else if (counts['BAR'] === 2) winnings += 20; // Two BARs
-            if (counts['🍉'] >= 3) winnings += 45; // Three Watermelons
-            if (counts['🍍'] >= 3) winnings += 30; // Three Pineapples
-            if (counts['🍒'] >= 3) winnings += 15; // Three Cherries
+            // Adjust winning conditions based on odds
+            if (Math.random() < WINNING_ODDS) {
+                if (counts['7'] >= 3) winnings += 200; // Three 7's
+                else if (counts['7'] === 2) winnings += 100; // Two 7's
+                if (counts['BAR'] >= 3) winnings += 60; // Three BARs
+                else if (counts['BAR'] === 2) winnings += 20; // Two BARs
+                if (counts['🍉'] >= 3) winnings += 45; // Three Watermelons
+                if (counts['🍍'] >= 3) winnings += 30; // Three Pineapples
+                if (counts['🍒'] >= 3) winnings += 15; // Three Cherries
+            }
 
             // Add winnings to balance
             balance += winnings;
