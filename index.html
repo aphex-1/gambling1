@@ -7,35 +7,52 @@
     <style>
         body {
             font-family: Arial, sans-serif;
+            text-align: center;
             background-color: #222;
             color: white;
-            text-align: center;
-            margin: 0;
-            padding: 20px;
         }
 
-        #slotContainer {
+        .slot-machine {
             display: flex;
             justify-content: center;
-            margin: 20px;
+            margin: 50px auto;
         }
 
-        .slot {
+        .column {
             width: 100px;
             height: 100px;
-            background-color: #333;
-            border: 2px solid #fff;
-            margin: 0 5px;
+            margin: 0 10px;
+            font-size: 3rem;
+            background-color: #000;
+            border: 3px solid #fff;
             display: flex;
-            align-items: center;
             justify-content: center;
-            font-size: 32px;
-            animation: scroll 0.5s infinite linear; /* Adjust for better scrolling effect */
+            align-items: center;
+            animation: scroll 0.5s infinite linear;
         }
 
         @keyframes scroll {
             0% { transform: translateY(0); }
-            100% { transform: translateY(-300%); } /* Adjust to enhance scrolling effect */
+            100% { transform: translateY(-300%); }
+        }
+
+        #spin-button {
+            padding: 15px 30px;
+            background-color: #ff5722;
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #spin-button:hover {
+            background-color: #e64a19;
+        }
+
+        .money-counter {
+            margin-top: 30px;
+            font-size: 2rem;
         }
 
         #winKey {
@@ -48,42 +65,23 @@
             color: black;
             display: none; /* Hide by default */
         }
-
-        #spinButton {
-            margin: 20px;
-            padding: 10px 20px;
-            font-size: 18px;
-            background-color: #28a745;
-            color: white;
-            border: none;
-            cursor: pointer;
-        }
-
-        #spinButton:hover {
-            background-color: #218838;
-        }
-
-        #moneyCounter {
-            margin: 20px;
-            font-size: 24px;
-        }
     </style>
 </head>
 <body>
 
     <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
 
-    <div id="moneyCounter">Current Balance: $<span id="balance">100</span></div>
+    <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
 
-    <div id="slotContainer">
-        <div class="slot" id="slot1">🍒</div>
-        <div class="slot" id="slot2">🍍</div>
-        <div class="slot" id="slot3">🍉</div>
-        <div class="slot" id="slot4">BAR</div>
-        <div class="slot" id="slot5">7</div>
+    <div class="slot-machine">
+        <div class="column" id="slot1">🍒</div>
+        <div class="column" id="slot2">🍍</div>
+        <div class="column" id="slot3">🍉</div>
+        <div class="column" id="slot4">BAR</div>
+        <div class="column" id="slot5">7</div>
     </div>
 
-    <button id="spinButton" onclick="spin()">Spin</button>
+    <button id="spin-button" onclick="spin()">Spin</button>
 
     <div id="winKey">
         <h3>Winning Key</h3>
@@ -117,7 +115,7 @@
 
             // Randomize slot results
             const symbols = ["🍒", "🍍", "🍉", "BAR", "7"];
-            const slotElements = document.querySelectorAll('.slot');
+            const slotElements = document.querySelectorAll('.column');
 
             slotElements.forEach(slot => {
                 const randomIndex = Math.floor(Math.random() * symbols.length);
