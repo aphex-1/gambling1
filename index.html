@@ -10,7 +10,7 @@
             text-align: center;
             background-color: #222;
             color: white;
-            overflow: hidden; /* Prevent overflow */
+            overflow: hidden;
         }
 
         .slot-machine {
@@ -29,9 +29,9 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            overflow: hidden; /* Hide overflowing content */
-            position: relative; /* Relative positioning for animation */
-            transition: border 0.3s ease; /* Smooth transition for border changes */
+            overflow: hidden;
+            position: relative;
+            transition: border 0.3s ease;
         }
 
         #spin-button {
@@ -42,7 +42,7 @@
             color: white;
             cursor: pointer;
             margin-top: 20px;
-            transition: background-color 0.3s ease; /* Smooth transition */
+            transition: background-color 0.3s ease;
         }
 
         #spin-button:hover {
@@ -73,17 +73,17 @@
             padding: 10px;
             border: 1px solid #ccc;
             color: black;
-            display: none; /* Hide by default */
+            display: none;
         }
 
         .win-message {
             font-size: 2rem;
-            color: #ffeb3b; /* Highlight color */
-            display: none; /* Hide by default */
+            color: #ffeb3b;
+            display: none;
         }
 
         .highlight {
-            border: 3px solid #ffeb3b; /* Highlight color for winning slots */
+            border: 3px solid orange; /* Use the orange color to highlight winning slots */
         }
     </style>
 </head>
@@ -228,8 +228,8 @@
         function highlightWinningSlots(counts, hasWinnings) {
             const slotElements = document.querySelectorAll('.column');
             slotElements.forEach((element) => {
-                // Only highlight if there are winnings and the symbol is a winning one
-                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
+                // Only highlight winning slots that contribute to the payout
+                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] > 0) {
                     element.classList.add('highlight');
                 } else {
                     element.classList.remove('highlight');
