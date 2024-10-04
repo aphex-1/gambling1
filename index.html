@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            margin: 50px auto;
+        }
+
+        .column {
+            width: 100px;
+            height: 100px;
+            margin: 0 10px;
+            font-size: 3rem;
+            background-color: #000;
+            border: 3px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #spin-button {
+            padding: 15px 30px;
+            background-color: #ff5722;
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #spin-button:hover {
+            background-color: #e64a19;
+        }
+
+        .money-counter {
+            margin-top: 30px;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Slot Machine</h1>
+
+    <div class="slot-machine">
+        <div id="column1" class="column">🍒</div>
+        <div id="column2" class="column">7</div>
+        <div id="column3" class="column">🍋</div>
+        <div id="column4" class="column">BAR</div>
+        <div id="column5" class="column">🍉</div>
+    </div>
+
+    <button id="spin-button">Spin</button>
+
+    <div class="money-counter">
+        <h2>Balance: $<span id="money">100</span></h2>
+        <label for="bet">Bet Amount: $</label>
+        <input type="number" id="bet" value="10" min="1" />
+    </div>
+
+    <script>
+        const symbols = ["🍒", "7", "🍋", "BAR", "🍉", "🍇", "🔔", "🍀"];
+        let money = 100;
+
+        // Sound effect for spinning
+        const spinSound = new Audio('https://www.soundjay.com/button/sounds/button-3.mp3');
+
+        document.getElementById('spin-button').addEventListener('click', () => {
+            let betAmount = parseInt(document.getElementById('bet').value);
+            if (betAmount > money) {
+                alert('Insufficient funds!');
+                return;
+            }
+
+            spinSound.play(); // Play spin sound
+
+            // Randomize each column
+            for (let i = 1; i <= 5; i++) {
+                const randomSymbol = symbols[Math.floor(Math.random() * symbols.length)];
+                document.getElementById('column' + i).textContent = randomSymbol;
+            }
+
+            // Money counter logic (this is where you can add win/loss conditions)
+            money -= betAmount;
+            document.getElementById('money').textContent = money;
+
+            // Example win condition (if all symbols match, double the bet)
+            const columns = [];
+            for (let i = 1; i <= 5; i++) {
+                columns.push(document.getElementById('column' + i).textContent);
+            }
+            if (new Set(columns).size === 1) {
+                alert('Jackpot! You win ' + betAmount * 10 + '!');
+                money += betAmount * 10;
+                document.getElementById('money').textContent = money;
+            }
+        });
+    </script>
+
+</body>
+</html>
