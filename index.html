@@ -10,6 +10,7 @@
             text-align: center;
             background-color: #222;
             color: white;
+            overflow: hidden; /* Prevent overflow */
         }
 
         .slot-machine {
@@ -30,6 +31,7 @@
             align-items: center;
             overflow: hidden; /* Hide overflowing content */
             position: relative; /* Relative positioning for animation */
+            transition: border 0.3s ease; /* Smooth transition for border changes */
         }
 
         #spin-button {
@@ -40,6 +42,7 @@
             color: white;
             cursor: pointer;
             margin-top: 20px;
+            transition: background-color 0.3s ease; /* Smooth transition */
         }
 
         #spin-button:hover {
@@ -72,11 +75,24 @@
             color: black;
             display: none; /* Hide by default */
         }
+
+        .win-message {
+            font-size: 2rem;
+            color: #ffeb3b; /* Highlight color */
+            display: none; /* Hide by default */
+        }
+
+        .highlight {
+            border: 3px solid #ffeb3b; /* Highlight color for winning slots */
+        }
     </style>
 </head>
 <body>
 
     <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
+    <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
+    <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
+    <audio id="bgMusic" src="path/to/background-music.mp3" loop preload="auto"></audio>
 
     <div class="slot-machine">
         <div class="column" id="slot1">🍒</div>
@@ -93,6 +109,7 @@
     <button id="spin-button" onclick="spin()">Spin</button>
 
     <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
+    <div class="win-message" id="winMessage"></div>
 
     <div id="winKey">
         <h3>Winning Key</h3>
@@ -103,6 +120,8 @@
         <p>7 - $50</p>
         <p>Two 7's - $100</p>
         <p>Three 7's - $200</p>
+        <p>Four 7's - $400</p>
+        <p>Five 7's - $500</p>
     </div>
 
     <script>
@@ -115,8 +134,11 @@
         const SPIN_INTERVAL = 100; // Interval for updating slots
         const WINNING_ODDS = 0.3; // Adjust this value (0 to 1) to change winning odds
 
+        // Start background music
+        document.getElementById('bgMusic').play();
+
         function spin() {
-            // Play sound
+            // Play spin sound
             const spinSound = document.getElementById('spinSound');
             spinSound.play();
 
@@ -168,55 +190,60 @@
             slotElements.forEach(element => results.push(element.innerText)); // Get results from each column
 
             let winnings = 0;
-
-            // Winning logic with adjustable odds
             const counts = {};
             results.forEach(result => {
-                counts[result] = (counts[result] || 0) + 1;
+                counts[result] = (counts[result] || 0) + 1; // Count each symbol
             });
 
-            // Adjust winning conditions based on odds
-            if (Math.random() < WINNING_ODDS) {
-                if (counts['7'] >= 3) winnings += 200; // Three 7's
-                else if (counts['7'] === 2) winnings += 100; // Two 7's
-                if (counts['BAR'] >= 3) winnings += 60; // Three BARs
-                else if (counts['BAR'] === 2) winnings += 20; // Two BARs
-                if (counts['🍉'] >= 3) winnings += 45; // Three Watermelons
-                if (counts['🍍'] >= 3) winnings += 30; // Three Pineapples
-                if (counts['🍒'] >= 3) winnings += 15; // Three Cherries
+            // Winning logic with adjustable odds
+            for (const [symbol, count] of Object.entries(counts)) {
+                if (count >= 2 && symbol === '7') {
+                    winnings += (count === 2) ? 100 : (count === 3) ? 200 : (count === 4) ? 400 : (count === 5) ? 500 : 0;
+                } else if (count === 3) {
+                    if (symbol === 'BAR') winnings += 60; // Three BARs
+                    if (symbol === '🍉') winnings += 45; // Three Watermelons
+                    if (symbol === '🍍') winnings += 30; // Three Pineapples
+                    if (symbol === '🍒') winnings += 15; // Three Cherries
+                }
             }
 
             // Add winnings to balance
             balance += winnings;
+
+            // Play win sound if there are winnings
+            if (winnings > 0) {
+                const winSound = document.getElementById('winSound');
+                winSound.play();
+                displayWinMessage(winnings);
+            }
 
             // Highlight winning slots
             highlightWinningSlots(counts);
 
             // Show the winning key
             document.getElementById('winKey').style.display = 'block';
-
-            // Update balance on screen
             document.getElementById('balance').innerText = balance;
-
-            // Reset bet if balance goes below zero
-            if (balance <= 0) {
-                alert("You're out of money! Please reload to continue.");
-                balance = 0;
-                document.getElementById('balance').innerText = balance;
-            }
         }
 
         function highlightWinningSlots(counts) {
             const slotElements = document.querySelectorAll('.column');
-            slotElements.forEach((element, index) => {
+            slotElements.forEach((element) => {
                 if (counts[element.innerText] >= 2) {
-                    element.style.border = "3px solid orange"; // Highlight border
+                    element.classList.add('highlight');
                 } else {
-                    element.style.border = "3px solid white"; // Reset border
+                    element.classList.remove('highlight');
                 }
             });
         }
-    </script>
 
+        function displayWinMessage(winnings) {
+            const winMessage = document.getElementById('winMessage');
+            winMessage.innerText = `You won $${winnings}!`;
+            winMessage.style.display = 'block';
+            setTimeout(() => {
+                winMessage.style.display = 'none'; // Hide after a delay
+            }, 3000);
+        }
+    </script>
 </body>
 </html>
