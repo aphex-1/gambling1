@@ -28,6 +28,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            overflow: hidden; /* Hide overflowing content */
         }
 
         #spin-button {
@@ -58,15 +59,6 @@
             border: 1px solid #ccc;
             color: black;
             display: none; /* Hide by default */
-        }
-
-        .animation {
-            animation: scroll 0.5s infinite linear;
-        }
-
-        @keyframes scroll {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-300%); }
         }
 
         /* Additional styles to fill space */
@@ -109,6 +101,9 @@
             <p>7 - $50</p>
             <p>Two 7's - $100</p>
             <p>Three 7's - $200</p>
+            <p>🍋 - $2</p>
+            <p>🍊 - $3</p>
+            <p>❌ - $0 (losing symbol)</p>
         </div>
     </div>
 
@@ -134,17 +129,17 @@
             // Start animation
             const slotElements = document.querySelectorAll('.column');
             slotElements.forEach(slot => {
-                slot.classList.add('animation'); // Start animation
+                slot.classList.add('spinning'); // Start spinning animation
             });
 
             setTimeout(() => {
                 // Stop animation
                 slotElements.forEach(slot => {
-                    slot.classList.remove('animation');
+                    slot.classList.remove('spinning');
                 });
 
                 // Randomize slot results
-                const symbols = ["🍒", "🍍", "🍉", "BAR", "7"];
+                const symbols = ["🍒", "🍍", "🍉", "BAR", "7", "🍋", "🍊", "❌"];
                 slotElements.forEach(slot => {
                     const randomIndex = Math.floor(Math.random() * symbols.length);
                     slot.innerText = symbols[randomIndex];
@@ -155,7 +150,7 @@
 
                 // Calculate winnings based on results
                 calculateWinnings(slotElements);
-            }, 500); // Duration of the animation
+            }, 800); // Match duration of the animation
         }
 
         function calculateWinnings(slotElements) {
@@ -176,6 +171,11 @@
             if (counts['🍉'] >= 3) winnings += 45; // Three Watermelons
             if (counts['🍍'] >= 3) winnings += 30; // Three Pineapples
             if (counts['🍒'] >= 3) winnings += 15; // Three Cherries
+            if (counts['🍋'] >= 3) winnings += 10; // Three Lemons
+            if (counts['🍊'] >= 3) winnings += 5; // Three Oranges
+            
+            // Reduce the winnings if there is a losing symbol
+            if (counts['❌'] > 0) winnings -= bet; // If there is a losing symbol, lose the bet amount
 
             // Add winnings to balance
             balance += winnings;
@@ -189,5 +189,4 @@
             }
         }
     </script>
-</body>
-</html>
+</body
