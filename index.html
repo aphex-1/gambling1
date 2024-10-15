@@ -102,7 +102,7 @@
     </div>
 
     <div class="bet-amount">
-        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" onchange="updateWinKey()" />
+        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
     </div>
 
     <button id="spin-button" onclick="spin()">Spin</button>
@@ -135,6 +135,12 @@
 
         // Start background music
         document.getElementById('bgMusic').play();
+
+        // Initialize win key with default values
+        updateWinKey();
+
+        // Add event listener to update the winning key when bet changes
+        document.getElementById('betInput').addEventListener('input', updateWinKey);
 
         function spin() {
             // Get bet amount
@@ -221,11 +227,8 @@
                 }
             }
 
-            // Add winnings to balance
-            balance += winnings;
-
-            // Play win sound if there are winnings
             if (winnings > 0) {
+                balance += winnings;
                 const winSound = document.getElementById('winSound');
                 winSound.play();
                 displayWinMessage(winnings);
