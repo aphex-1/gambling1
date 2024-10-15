@@ -73,7 +73,6 @@
             padding: 10px;
             border: 1px solid #ccc;
             color: black;
-            display: none;
         }
 
         .win-message {
@@ -103,7 +102,7 @@
     </div>
 
     <div class="bet-amount">
-        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
+        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" onchange="updateWinKey()" />
     </div>
 
     <button id="spin-button" onclick="spin()">Spin</button>
@@ -113,15 +112,15 @@
 
     <div id="winKey">
         <h3>Winning Key</h3>
-        <p>🍒 - $5</p>
-        <p>🍍 - $10</p>
-        <p>🍉 - $15</p>
-        <p>BAR - $20</p>
-        <p>7 - $50</p>
-        <p>Two 7's - $100</p>
-        <p>Three 7's - $200</p>
-        <p>Four 7's - $400</p>
-        <p>Five 7's - $500</p>
+        <p id="cherryWin">🍒 - $<span id="cherryValue">5</span></p>
+        <p id="pineappleWin">🍍 - $<span id="pineappleValue">10</span></p>
+        <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
+        <p id="barWin">BAR - $<span id="barValue">20</span></p>
+        <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
+        <p id="twoSevensWin">Two 7's - $<span id="twoSevensValue">100</span></p>
+        <p id="threeSevensWin">Three 7's - $<span id="threeSevensValue">200</span></p>
+        <p id="fourSevensWin">Four 7's - $<span id="fourSevensValue">400</span></p>
+        <p id="fiveSevensWin">Five 7's - $<span id="fiveSevensValue">500</span></p>
     </div>
 
     <script>
@@ -132,7 +131,7 @@
         // Customizable variables
         const SPIN_DURATION = 1500; // Duration of spin in milliseconds
         const SPIN_INTERVAL = 100; // Interval for updating slots
-        const WINNING_ODDS = 0.25; // Adjust this value (0 to 1) to change winning odds
+        const WINNING_ODDS = 0.3; // Adjust this value (0 to 1) to change winning odds
 
         // Start background music
         document.getElementById('bgMusic').play();
@@ -230,21 +229,25 @@
                 const winSound = document.getElementById('winSound');
                 winSound.play();
                 displayWinMessage(winnings);
+            } else {
+                const loseSound = document.getElementById('loseSound');
+                loseSound.play();
             }
 
-            // Highlight winning slots
-            highlightWinningSlots(counts, winnings > 0);
-
-            // Show the winning key
-            document.getElementById('winKey').style.display = 'block';
+            // Update balance
             document.getElementById('balance').innerText = balance;
+
+            // Update the winnings display
+            displayWinMessage(winnings);
+
+            // Highlight winning slots
+            highlightWinningSlots(counts);
         }
 
-        function highlightWinningSlots(counts, hasWinnings) {
+        function highlightWinningSlots(counts) {
             const slotElements = document.querySelectorAll('.column');
-            slotElements.forEach((element) => {
-                // Only highlight winning slots that contribute to the payout
-                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
+            slotElements.forEach(element => {
+                if (['7', 'BAR', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
                     element.classList.add('highlight');
                 } else {
                     element.classList.remove('highlight');
@@ -262,6 +265,23 @@
                 winMessage.style.display = 'none';
             }, 3000);
         }
+
+        // Dynamically update the winning key based on bet amount
+        function updateWinKey() {
+            bet = parseInt(document.getElementById('betInput').value, 10);
+            document.getElementById('cherryValue').innerText = (5 * bet / 10).toFixed(2);
+            document.getElementById('pineappleValue').innerText = (10 * bet / 10).toFixed(2);
+            document.getElementById('watermelonValue').innerText = (15 * bet / 10).toFixed(2);
+            document.getElementById('barValue').innerText = (20 * bet / 10).toFixed(2);
+            document.getElementById('sevenValue').innerText = (50 * bet / 10).toFixed(2);
+            document.getElementById('twoSevensValue').innerText = (100 * bet / 10).toFixed(2);
+            document.getElementById('threeSevensValue').innerText = (200 * bet / 10).toFixed(2);
+            document.getElementById('fourSevensValue').innerText = (400 * bet / 10).toFixed(2);
+            document.getElementById('fiveSevensValue').innerText = (500 * bet / 10).toFixed(2);
+        }
+
+        // Initialize win key with default values
+        updateWinKey();
     </script>
 </body>
 </html>
