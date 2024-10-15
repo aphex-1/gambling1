@@ -83,7 +83,7 @@
         }
 
         .highlight {
-            border: 3px solid orange; /* Use the orange color to highlight winning slots */
+            border: 3px solid orange;
         }
     </style>
 </head>
@@ -132,22 +132,30 @@
         // Customizable variables
         const SPIN_DURATION = 1500; // Duration of spin in milliseconds
         const SPIN_INTERVAL = 100; // Interval for updating slots
-        const WINNING_ODDS = 0.45; // Adjust this value (0 to 1) to change winning odds
+        const WINNING_ODDS = 0.3; // Adjust this value (0 to 1) to change winning odds
 
         // Start background music
         document.getElementById('bgMusic').play();
 
         function spin() {
+            // Get bet amount
+            bet = parseInt(document.getElementById('betInput').value, 10);
+            
+            // Ensure minimum bet is $1
+            if (bet < 1) {
+                alert("Minimum bet is $1");
+                return;
+            }
+
+            // Check if the bet is more than balance
+            if (bet > balance) {
+                alert("You can't bet more than your current balance.");
+                return;
+            }
+
             // Play spin sound
             const spinSound = document.getElementById('spinSound');
             spinSound.play();
-
-            // Check if the user can play
-            bet = parseInt(document.getElementById('betInput').value, 10);
-            if (balance <= 0) {
-                alert("You're out of money! Please reload to continue.");
-                return;
-            }
 
             // Deduct the bet amount from balance
             balance -= bet;
@@ -198,18 +206,18 @@
             // Winning logic with adjustable odds
             for (const [symbol, count] of Object.entries(counts)) {
                 if (count >= 2 && symbol === '7') {
-                    winnings += (count === 2) ? 100 : (count === 3) ? 200 : (count === 4) ? 400 : (count === 5) ? 500 : 0;
+                    winnings += ((count === 2) ? 100 : (count === 3) ? 200 : (count === 4) ? 400 : (count === 5) ? 500 : 0) * bet / 10;
                 } else if (count === 3) {
-                    if (symbol === 'BAR') winnings += 60; // Three BARs
-                    if (symbol === '🍉') winnings += 45; // Three Watermelons
-                    if (symbol === '🍍') winnings += 30; // Three Pineapples
-                    if (symbol === '🍒') winnings += 15; // Three Cherries
+                    if (symbol === 'BAR') winnings += 60 * (bet / 10); // Three BARs
+                    if (symbol === '🍉') winnings += 45 * (bet / 10); // Three Watermelons
+                    if (symbol === '🍍') winnings += 30 * (bet / 10); // Three Pineapples
+                    if (symbol === '🍒') winnings += 15 * (bet / 10); // Three Cherries
                 } else {
                     // Calculate winnings for pairs
                     if (count === 2) {
-                        if (symbol === '🍒') winnings += 10; // Two Cherries
-                        if (symbol === '🍍') winnings += 20; // Two Pineapples
-                        if (symbol === '🍉') winnings += 30; // Two Watermelons
+                        if (symbol === '🍒') winnings += 10 * (bet / 10); // Two Cherries
+                        if (symbol === '🍍') winnings += 20 * (bet / 10); // Two Pineapples
+                        if (symbol === '🍉') winnings += 30 * (bet / 10); // Two Watermelons
                     }
                 }
             }
@@ -236,7 +244,7 @@
             const slotElements = document.querySelectorAll('.column');
             slotElements.forEach((element) => {
                 // Only highlight winning slots that contribute to the payout
-                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] > 0) {
+                if (hasWinnings && ['BAR', '7', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
                     element.classList.add('highlight');
                 } else {
                     element.classList.remove('highlight');
