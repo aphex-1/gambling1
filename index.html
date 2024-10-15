@@ -85,18 +85,9 @@
             border: 3px solid orange;
         }
     </style>
-</head>
-<body>
-    
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Machine</title>
-    <style>
-        /* Your existing styles */
-    </style>
+    <!-- Firebase SDKs -->
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
     <div>
@@ -106,7 +97,40 @@
     </div>
     
     <div id="slot-machine-container">
-        <!-- Existing slot machine code -->
+        <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
+        <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
+        <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
+        <audio id="bgMusic" src="path/to/background-music.mp3" loop preload="auto"></audio>
+
+        <div class="slot-machine">
+            <div class="column" id="slot1">🍒</div>
+            <div class="column" id="slot2">🍍</div>
+            <div class="column" id="slot3">🍉</div>
+            <div class="column" id="slot4">BAR</div>
+            <div class="column" id="slot5">7</div>
+        </div>
+
+        <div class="bet-amount">
+            Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
+        </div>
+
+        <button id="spin-button" onclick="spin()">Spin</button>
+
+        <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
+        <div class="win-message" id="winMessage"></div>
+
+        <div id="winKey">
+            <h3>Winning Key</h3>
+            <p id="cherryWin">🍒 - $<span id="cherryValue">5</span></p>
+            <p id="pineappleWin">🍍 - $<span id="pineappleValue">10</span></p>
+            <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
+            <p id="barWin">BAR - $<span id="barValue">20</span></p>
+            <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
+            <p id="twoSevensWin">Two 7's - $<span id="twoSevensValue">100</span></p>
+            <p id="threeSevensWin">Three 7's - $<span id="threeSevensValue">200</span></p>
+            <p id="fourSevensWin">Four 7's - $<span id="fourSevensValue">400</span></p>
+            <p id="fiveSevensWin">Five 7's - $<span id="fiveSevensValue">500</span></p>
+        </div>
     </div>
 
     <div id="leaderboard">
@@ -115,6 +139,21 @@
     </div>
 
     <script>
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+
+        // Initialize Firebase
+        const app = firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+
         // User Registration
         let username = '';
         document.getElementById('submitUsername').addEventListener('click', () => {
@@ -123,6 +162,7 @@
                 localStorage.setItem('username', username);
                 document.getElementById('usernameInput').style.display = 'none';
                 document.getElementById('submitUsername').style.display = 'none';
+                displayLeaderboard();
             }
         });
 
@@ -130,28 +170,32 @@
         function updateLeaderboard(winnings) {
             if (username === '') return;
 
-            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
-            if (leaderboard[username]) {
-                leaderboard[username] += winnings;
-            } else {
-                leaderboard[username] = winnings;
-            }
-
-            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
-            displayLeaderboard();
+            const userRef = database.ref('leaderboard/' + username);
+            userRef.transaction(currentScore => {
+                return (currentScore || 0) + winnings;
+            }, (error, committed) => {
+                if (error) {
+                    console.error("Transaction failed: ", error);
+                } else if (committed) {
+                    displayLeaderboard();
+                }
+            });
         }
 
         // Display Leaderboard
         function displayLeaderboard() {
-            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
-            let sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
+            const leaderboardRef = database.ref('leaderboard');
+            leaderboardRef.once('value', (snapshot) => {
+                const leaderboard = snapshot.val() || {};
+                const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
 
-            let leaderboardList = document.getElementById('leaderboardList');
-            leaderboardList.innerHTML = '';
-            sortedLeaderboard.forEach(([user, score]) => {
-                let li = document.createElement('li');
-                li.innerText = `${user}: $${score}`;
-                leaderboardList.appendChild(li);
+                const leaderboardList = document.getElementById('leaderboardList');
+                leaderboardList.innerHTML = '';
+                sortedLeaderboard.forEach(([user, score]) => {
+                    const li = document.createElement('li');
+                    li.innerText = `${user}: $${score}`;
+                    leaderboardList.appendChild(li);
+                });
             });
         }
 
@@ -160,55 +204,7 @@
             updateLeaderboard(winnings);
         }
 
-        // Initialize
-        window.onload = () => {
-            username = localStorage.getItem('username') || '';
-            if (username) {
-                document.getElementById('usernameInput').style.display = 'none';
-                document.getElementById('submitUsername').style.display = 'none';
-            }
-            displayLeaderboard();
-        };
-    </script>
-</body>
-</html>
-
-    <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
-    <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
-    <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
-    <audio id="bgMusic" src="path/to/background-music.mp3" loop preload="auto"></audio>
-
-    <div class="slot-machine">
-        <div class="column" id="slot1">🍒</div>
-        <div class="column" id="slot2">🍍</div>
-        <div class="column" id="slot3">🍉</div>
-        <div class="column" id="slot4">BAR</div>
-        <div class="column" id="slot5">7</div>
-    </div>
-
-    <div class="bet-amount">
-        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
-    </div>
-
-    <button id="spin-button" onclick="spin()">Spin</button>
-
-    <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
-    <div class="win-message" id="winMessage"></div>
-
-    <div id="winKey">
-        <h3>Winning Key</h3>
-        <p id="cherryWin">🍒 - $<span id="cherryValue">5</span></p>
-        <p id="pineappleWin">🍍 - $<span id="pineappleValue">10</span></p>
-        <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
-        <p id="barWin">BAR - $<span id="barValue">20</span></p>
-        <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
-        <p id="twoSevensWin">Two 7's - $<span id="twoSevensValue">100</span></p>
-        <p id="threeSevensWin">Three 7's - $<span id="threeSevensValue">200</span></p>
-        <p id="fourSevensWin">Four 7's - $<span id="fourSevensValue">400</span></p>
-        <p id="fiveSevensWin">Five 7's - $<span id="fiveSevensValue">500</span></p>
-    </div>
-
-    <script>
+        // Slot machine game logic
         let balance = 100; // Starting balance
         let bet = 10; // Default bet amount
         let spinning = false; // Spinning state
@@ -220,12 +216,6 @@
 
         // Start background music
         document.getElementById('bgMusic').play();
-
-        // Initialize win key with default values
-        updateWinKey();
-
-        // Add event listener to update the winning key when bet changes
-        document.getElementById('betInput').addEventListener('input', updateWinKey);
 
         function spin() {
             // Get bet amount
@@ -247,129 +237,68 @@
             const spinSound = document.getElementById('spinSound');
             spinSound.play();
 
-            // Deduct the bet amount from balance
-            balance -= bet;
+            spinning = true; // Set spinning state to true
 
-            // Start animation
-            const slotElements = document.querySelectorAll('.column');
-            spinning = true;
+            const slots = ['🍒', '🍍', '🍉', 'BAR', '7'];
+            let results = [];
 
-            // Start the spinning animation
-            let spins = Math.floor(SPIN_DURATION / SPIN_INTERVAL); // Number of spins
-            let spinCounter = 0;
-
-            const spinAnimation = setInterval(() => {
-                for (let i = 0; i < slotElements.length; i++) {
-                    let randomSymbol = getRandomSymbol();
-                    slotElements[i].innerText = randomSymbol;
-                }
-                spinCounter++;
-
-                // Stop spinning after a set duration
-                if (spinCounter >= spins) {
-                    clearInterval(spinAnimation);
-                    spinning = false;
-                    calculateWinnings();
+            // Update slots during spin
+            const spinInterval = setInterval(() => {
+                for (let i = 1; i <= 5; i++) {
+                    const slot = document.getElementById(`slot${i}`);
+                    slot.innerText = slots[Math.floor(Math.random() * slots.length)];
                 }
             }, SPIN_INTERVAL);
 
-            // Update balance immediately
-            document.getElementById('balance').innerText = balance;
+            // Stop spinning after the duration
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                calculateWinnings(results);
+                spinning = false; // Set spinning state to false
+            }, SPIN_DURATION);
         }
 
-        function getRandomSymbol() {
-            const symbols = ["🍒", "🍍", "🍉", "BAR", "7", "🍏", "🍇", "🍋"];
-            return symbols[Math.floor(Math.random() * symbols.length)];
-        }
+        function calculateWinnings(results) {
+            const winMessage = document.getElementById('winMessage');
+            winMessage.style.display = 'none';
 
-        function calculateWinnings() {
-            const results = [];
-            const slotElements = document.querySelectorAll('.column');
-            slotElements.forEach(element => results.push(element.innerText)); // Get results from each column
+            // Example win calculation (customize this to your needs)
+            const winningCombinations = {
+                "🍒": 5,
+                "🍍": 10,
+                "🍉": 15,
+                "BAR": 20,
+                "7": 50
+            };
 
-            let winnings = 0;
-            const counts = {};
-            results.forEach(result => {
-                counts[result] = (counts[result] || 0) + 1; // Count each symbol
-            });
-
-            // Winning logic with adjustable odds
-            for (const [symbol, count] of Object.entries(counts)) {
-                if (count >= 2 && symbol === '7') {
-                    winnings += ((count === 2) ? 100 : (count === 3) ? 200 : (count === 4) ? 400 : (count === 5) ? 500 : 0) * bet / 10;
-                } else if (count === 3) {
-                    if (symbol === 'BAR') winnings += 60 * (bet / 10); // Three BARs
-                    if (symbol === '🍉') winnings += 45 * (bet / 10); // Three Watermelons
-                    if (symbol === '🍍') winnings += 30 * (bet / 10); // Three Pineapples
-                    if (symbol === '🍒') winnings += 15 * (bet / 10); // Three Cherries
-                } else {
-                    // Calculate winnings for pairs
-                    if (count === 2) {
-                        if (symbol === '🍒') winnings += 10 * (bet / 10); // Two Cherries
-                        if (symbol === '🍍') winnings += 20 * (bet / 10); // Two Pineapples
-                        if (symbol === '🍉') winnings += 30 * (bet / 10); // Two Watermelons
-                    }
-                }
+            // Randomly determine if the player wins based on winning odds
+            const winChance = Math.random();
+            if (winChance <= WINNING_ODDS) {
+                // Player wins a random amount
+                const winningKey = Object.keys(winningCombinations)[Math.floor(Math.random() * Object.keys(winningCombinations).length)];
+                const winnings = winningCombinations[winningKey];
+                balance += winnings;
+                winMessage.innerText = `You won $${winnings} with ${winningKey}!`;
+                winMessage.style.display = 'block';
+                handleWinnings(winnings); // Update leaderboard with winnings
+            } else {
+                balance -= bet;
+                winMessage.innerText = `You lost $${bet}. Better luck next time!`;
+                winMessage.style.display = 'block';
             }
 
-            if (winnings > 0) {
-                balance += winnings;
-                const winSound = document.getElementById('winSound');
+            // Update balance display
+            document.getElementById('balance').innerText = balance;
+
+            // Play win or lose sound
+            const winSound = document.getElementById('winSound');
+            const loseSound = document.getElementById('loseSound');
+            if (balance > 100) {
                 winSound.play();
-                displayWinMessage(winnings);
             } else {
-                const loseSound = document.getElementById('loseSound');
                 loseSound.play();
             }
-
-            // Update balance
-            document.getElementById('balance').innerText = balance;
-
-            // Update the winnings display
-            displayWinMessage(winnings);
-
-            // Highlight winning slots
-            highlightWinningSlots(counts);
         }
-
-        function highlightWinningSlots(counts) {
-            const slotElements = document.querySelectorAll('.column');
-            slotElements.forEach(element => {
-                if (['7', 'BAR', '🍉', '🍍', '🍒'].includes(element.innerText) && counts[element.innerText] >= 2) {
-                    element.classList.add('highlight');
-                } else {
-                    element.classList.remove('highlight');
-                }
-            });
-        }
-
-        function displayWinMessage(winnings) {
-            const winMessage = document.getElementById('winMessage');
-            winMessage.innerText = `You won $${winnings}`;
-            winMessage.style.display = 'block';
-
-            // Hide message after 3 seconds
-            setTimeout(() => {
-                winMessage.style.display = 'none';
-            }, 3000);
-        }
-
-        // Dynamically update the winning key based on bet amount
-        function updateWinKey() {
-            bet = parseInt(document.getElementById('betInput').value, 10);
-            document.getElementById('cherryValue').innerText = (5 * bet / 10).toFixed(2);
-            document.getElementById('pineappleValue').innerText = (10 * bet / 10).toFixed(2);
-            document.getElementById('watermelonValue').innerText = (15 * bet / 10).toFixed(2);
-            document.getElementById('barValue').innerText = (20 * bet / 10).toFixed(2);
-            document.getElementById('sevenValue').innerText = (50 * bet / 10).toFixed(2);
-            document.getElementById('twoSevensValue').innerText = (100 * bet / 10).toFixed(2);
-            document.getElementById('threeSevensValue').innerText = (200 * bet / 10).toFixed(2);
-            document.getElementById('fourSevensValue').innerText = (400 * bet / 10).toFixed(2);
-            document.getElementById('fiveSevensValue').innerText = (500 * bet / 10).toFixed(2);
-        }
-
-        // Initialize win key with default values
-        updateWinKey();
     </script>
 </body>
 </html>
