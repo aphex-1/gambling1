@@ -87,6 +87,91 @@
     </style>
 </head>
 <body>
+    
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+    <style>
+        /* Your existing styles */
+    </style>
+</head>
+<body>
+    <div>
+        <label for="username">Enter Username:</label>
+        <input type="text" id="usernameInput" placeholder="Username">
+        <button id="submitUsername">Submit</button>
+    </div>
+    
+    <div id="slot-machine-container">
+        <!-- Existing slot machine code -->
+    </div>
+
+    <div id="leaderboard">
+        <h2>Leaderboard</h2>
+        <ol id="leaderboardList"></ol>
+    </div>
+
+    <script>
+        // User Registration
+        let username = '';
+        document.getElementById('submitUsername').addEventListener('click', () => {
+            username = document.getElementById('usernameInput').value;
+            if (username) {
+                localStorage.setItem('username', username);
+                document.getElementById('usernameInput').style.display = 'none';
+                document.getElementById('submitUsername').style.display = 'none';
+            }
+        });
+
+        // Save User's Score and Update Leaderboard
+        function updateLeaderboard(winnings) {
+            if (username === '') return;
+
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
+            if (leaderboard[username]) {
+                leaderboard[username] += winnings;
+            } else {
+                leaderboard[username] = winnings;
+            }
+
+            localStorage.setItem('leaderboard', JSON.stringify(leaderboard));
+            displayLeaderboard();
+        }
+
+        // Display Leaderboard
+        function displayLeaderboard() {
+            let leaderboard = JSON.parse(localStorage.getItem('leaderboard')) || {};
+            let sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
+
+            let leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = '';
+            sortedLeaderboard.forEach(([user, score]) => {
+                let li = document.createElement('li');
+                li.innerText = `${user}: $${score}`;
+                leaderboardList.appendChild(li);
+            });
+        }
+
+        // Call updateLeaderboard() when the user wins
+        function handleWinnings(winnings) {
+            updateLeaderboard(winnings);
+        }
+
+        // Initialize
+        window.onload = () => {
+            username = localStorage.getItem('username') || '';
+            if (username) {
+                document.getElementById('usernameInput').style.display = 'none';
+                document.getElementById('submitUsername').style.display = 'none';
+            }
+            displayLeaderboard();
+        };
+    </script>
+</body>
+</html>
 
     <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
     <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
