@@ -242,61 +242,61 @@
             const slots = ['🍒', '🍍', '🍉', 'BAR', '7'];
             let results = [];
 
-            // Update slots during spin
-            const spinInterval = setInterval(() => {
-                for (let i = 1; i <= 5; i++) {
-                    const slot = document.getElementById(`slot${i}`);
-                    slot.innerText = slots[Math.floor(Math.random() * slots.length)];
-                }
-            }, SPIN_INTERVAL);
+            const columns = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
 
-            // Stop spinning after the duration
-            setTimeout(() => {
-                clearInterval(spinInterval);
-                calculateWinnings(results);
-                spinning = false; // Set spinning state to false
-            }, SPIN_DURATION);
+            columns.forEach((column, i) => {
+                setTimeout(() => {
+                    const randomIndex = Math.floor(Math.random() * slots.length);
+                    const slotValue = slots[randomIndex];
+                    document.getElementById(column).innerText = slotValue;
+                    results.push(slotValue);
+
+                    // Check for win when the last slot stops
+                    if (results.length === columns.length) {
+                        checkWin(results);
+                        spinning = false; // Reset spinning state
+                    }
+                }, i * SPIN_INTERVAL);
+            });
+
+            // Deduct bet from balance
+            balance -= bet;
+            document.getElementById('balance').innerText = balance;
         }
 
-        function calculateWinnings(results) {
-            const winMessage = document.getElementById('winMessage');
-            winMessage.style.display = 'none';
+        function checkWin(results) {
+            // Count the occurrence of each symbol
+            const counts = results.reduce((acc, curr) => {
+                acc[curr] = (acc[curr] || 0) + 1;
+                return acc;
+            }, {});
 
-            // Example win calculation (customize this to your needs)
-            const winningCombinations = {
-                "🍒": 5,
-                "🍍": 10,
-                "🍉": 15,
-                "BAR": 20,
-                "7": 50
-            };
+            let winnings = 0;
 
-            // Randomly determine if the player wins based on winning odds
-            const winChance = Math.random();
-            if (winChance <= WINNING_ODDS) {
-                // Player wins a random amount
-                const winningKey = Object.keys(winningCombinations)[Math.floor(Math.random() * Object.keys(winningCombinations).length)];
-                const winnings = winningCombinations[winningKey];
-                balance += winnings;
-                winMessage.innerText = `You won $${winnings} with ${winningKey}!`;
-                winMessage.style.display = 'block';
-                handleWinnings(winnings); // Update leaderboard with winnings
-            } else {
-                balance -= bet;
-                winMessage.innerText = `You lost $${bet}. Better luck next time!`;
-                winMessage.style.display = 'block';
+            // Define payout logic based on results
+            if (counts['7'] >= 3) {
+                winnings = bet * 10; // Triple 7's win
+            } else if (counts['7'] === 2) {
+                winnings = bet * 4; // Double 7's win
+            } else if (counts['BAR'] >= 2) {
+                winnings = bet * 2; // Double BAR's win
+            } else if (counts['🍉'] >= 2) {
+                winnings = bet * 1.5; // Watermelon win
+            } else if (counts['🍒'] >= 2) {
+                winnings = bet * 1.2; // Cherry win
             }
 
-            // Update balance display
-            document.getElementById('balance').innerText = balance;
-
-            // Play win or lose sound
-            const winSound = document.getElementById('winSound');
-            const loseSound = document.getElementById('loseSound');
-            if (balance > 100) {
-                winSound.play();
+            if (winnings > 0) {
+                balance += winnings;
+                document.getElementById('balance').innerText = balance;
+                document.getElementById('winMessage').innerText = `You won $${winnings}!`;
+                document.getElementById('winMessage').style.display = 'block';
+                handleWinnings(winnings); // Update leaderboard
+                document.getElementById('winSound').play(); // Play win sound
             } else {
-                loseSound.play();
+                document.getElementById('winMessage').innerText = `You lost $${bet}. Try again!`;
+                document.getElementById('winMessage').style.display = 'block';
+                document.getElementById('loseSound').play(); // Play lose sound
             }
         }
     </script>
