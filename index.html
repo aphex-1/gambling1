@@ -10,7 +10,6 @@
             text-align: center;
             background-color: #222;
             color: white;
-            overflow: hidden;
         }
 
         .slot-machine {
@@ -84,6 +83,21 @@
         .highlight {
             border: 3px solid orange;
         }
+
+        /* Spinning animation */
+        @keyframes spinAnimation {
+            0% { transform: translateY(0); }
+            100% { transform: translateY(-100%); }
+        }
+
+        .column .reel {
+            animation: spinAnimation 1s ease-in-out infinite;
+        }
+
+        .reel img {
+            width: 100px;
+            height: 100px;
+        }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
@@ -100,14 +114,13 @@
         <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
         <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
         <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
-        <audio id="bgMusic" src="path/to/background-music.mp3" loop preload="auto"></audio>
 
         <div class="slot-machine">
-            <div class="column" id="slot1">🍒</div>
-            <div class="column" id="slot2">🍍</div>
-            <div class="column" id="slot3">🍉</div>
-            <div class="column" id="slot4">BAR</div>
-            <div class="column" id="slot5">7</div>
+            <div class="column" id="slot1"><div class="reel"><img src="path/to/cherry.png" alt="Cherry"></div></div>
+            <div class="column" id="slot2"><div class="reel"><img src="path/to/pineapple.png" alt="Pineapple"></div></div>
+            <div class="column" id="slot3"><div class="reel"><img src="path/to/watermelon.png" alt="Watermelon"></div></div>
+            <div class="column" id="slot4"><div class="reel"><img src="path/to/bar.png" alt="BAR"></div></div>
+            <div class="column" id="slot5"><div class="reel"><img src="path/to/seven.png" alt="7"></div></div>
         </div>
 
         <div class="bet-amount">
@@ -126,10 +139,6 @@
             <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
             <p id="barWin">BAR - $<span id="barValue">20</span></p>
             <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
-            <p id="twoSevensWin">Two 7's - $<span id="twoSevensValue">100</span></p>
-            <p id="threeSevensWin">Three 7's - $<span id="threeSevensValue">200</span></p>
-            <p id="fourSevensWin">Four 7's - $<span id="fourSevensValue">400</span></p>
-            <p id="fiveSevensWin">Five 7's - $<span id="fiveSevensValue">500</span></p>
         </div>
     </div>
 
@@ -210,7 +219,7 @@
             for (let i = 1; i <= 5; i++) {
                 const result = slots[Math.floor(Math.random() * slots.length)];
                 results.push(result);
-                document.getElementById('slot' + i).innerText = result;
+                document.getElementById('slot' + i).innerHTML = result;
             }
 
             let winnings = calculateWinnings(results, betAmount);
@@ -228,7 +237,7 @@
                 const winSound = document.getElementById('winSound');
                 winSound.play();
             } else {
-                document.getElementById('winMessage').innerText = 'You lost this round!';
+                document.getElementById('winMessage').innerText = 'You lost!';
                 document.getElementById('winMessage').style.display = 'block';
                 setTimeout(() => {
                     document.getElementById('winMessage').style.display = 'none';
