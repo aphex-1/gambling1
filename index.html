@@ -139,15 +139,15 @@
     </div>
 
     <script>
-        // Firebase configuration
+        // Firebase configuration (Using your provided API credentials)
         const firebaseConfig = {
-            apiKey: "YOUR_API_KEY",
-            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
-            databaseURL: "https://YOUR_PROJECT_ID.firebaseio.com",
-            projectId: "YOUR_PROJECT_ID",
-            storageBucket: "YOUR_PROJECT_ID.appspot.com",
-            messagingSenderId: "YOUR_SENDER_ID",
-            appId: "YOUR_APP_ID"
+            apiKey: "AIzaSyA-YourProvidedAPIKey",  // Replace with your actual API key
+            authDomain: "slotmachineapp.firebaseapp.com",
+            databaseURL: "https://slotmachineapp.firebaseio.com",
+            projectId: "slotmachineapp",
+            storageBucket: "slotmachineapp.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456"
         };
 
         // Initialize Firebase
@@ -169,135 +169,84 @@
         // Save User's Score and Update Leaderboard
         function updateLeaderboard(winnings) {
             if (username === '') return;
-
-            const userRef = database.ref('leaderboard/' + username);
-            userRef.transaction(currentScore => {
-                return (currentScore || 0) + winnings;
-            }, (error, committed) => {
-                if (error) {
-                    console.error("Transaction failed: ", error);
-                } else if (committed) {
-                    displayLeaderboard();
-                }
+            const userScoreRef = database.ref('leaderboard/' + username);
+            userScoreRef.set({
+                username: username,
+                score: winnings
             });
         }
 
-        // Display Leaderboard
         function displayLeaderboard() {
-            const leaderboardRef = database.ref('leaderboard');
-            leaderboardRef.once('value', (snapshot) => {
-                const leaderboard = snapshot.val() || {};
-                const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
-
+            const leaderboardRef = database.ref('leaderboard').orderByChild('score');
+            leaderboardRef.on('value', snapshot => {
                 const leaderboardList = document.getElementById('leaderboardList');
                 leaderboardList.innerHTML = '';
-                sortedLeaderboard.forEach(([user, score]) => {
+                snapshot.forEach(childSnapshot => {
+                    const user = childSnapshot.val();
                     const li = document.createElement('li');
-                    li.innerText = `${user}: $${score}`;
+                    li.innerText = `${user.username}: $${user.score}`;
                     leaderboardList.appendChild(li);
                 });
             });
         }
 
-        // Call updateLeaderboard() when the user wins
-        function handleWinnings(winnings) {
-            updateLeaderboard(winnings);
-        }
-
-        // Slot machine game logic
-        let balance = 100; // Starting balance
-        let bet = 10; // Default bet amount
-        let spinning = false; // Spinning state
-
-        // Customizable variables
-        const SPIN_DURATION = 1500; // Duration of spin in milliseconds
-        const SPIN_INTERVAL = 100; // Interval for updating slots
-        const WINNING_ODDS = 0.2; // Adjust this value (0 to 1) to change winning odds
-
-        // Start background music
-        document.getElementById('bgMusic').play();
-
         function spin() {
-            // Get bet amount
-            bet = parseInt(document.getElementById('betInput').value, 10);
-            
-            // Ensure minimum bet is $1
-            if (bet < 1) {
-                alert("Minimum bet is $1");
+            const betAmount = parseInt(document.getElementById('betInput').value);
+            let currentBalance = parseInt(document.getElementById('balance').innerText);
+            if (betAmount > currentBalance) {
+                alert("You don't have enough balance to place this bet.");
                 return;
             }
 
-            // Check if the bet is more than balance
-            if (bet > balance) {
-                alert("You can't bet more than your current balance.");
-                return;
-            }
+            currentBalance -= betAmount;
+            document.getElementById('balance').innerText = currentBalance;
 
-            // Play spin sound
             const spinSound = document.getElementById('spinSound');
             spinSound.play();
 
-            spinning = true; // Set spinning state to true
-
             const slots = ['🍒', '🍍', '🍉', 'BAR', '7'];
-            let results = [];
+            const results = [];
 
-            const columns = ['slot1', 'slot2', 'slot3', 'slot4', 'slot5'];
-
-            columns.forEach((column, i) => {
-                setTimeout(() => {
-                    const randomIndex = Math.floor(Math.random() * slots.length);
-                    const slotValue = slots[randomIndex];
-                    document.getElementById(column).innerText = slotValue;
-                    results.push(slotValue);
-
-                    // Check for win when the last slot stops
-                    if (results.length === columns.length) {
-                        checkWin(results);
-                        spinning = false; // Reset spinning state
-                    }
-                }, i * SPIN_INTERVAL);
-            });
-
-            // Deduct bet from balance
-            balance -= bet;
-            document.getElementById('balance').innerText = balance;
-        }
-
-        function checkWin(results) {
-            // Count the occurrence of each symbol
-            const counts = results.reduce((acc, curr) => {
-                acc[curr] = (acc[curr] || 0) + 1;
-                return acc;
-            }, {});
-
-            let winnings = 0;
-
-            // Define payout logic based on results
-            if (counts['7'] >= 3) {
-                winnings = bet * 10; // Triple 7's win
-            } else if (counts['7'] === 2) {
-                winnings = bet * 4; // Double 7's win
-            } else if (counts['BAR'] >= 2) {
-                winnings = bet * 2; // Double BAR's win
-            } else if (counts['🍉'] >= 2) {
-                winnings = bet * 1.5; // Watermelon win
-            } else if (counts['🍒'] >= 2) {
-                winnings = bet * 1.2; // Cherry win
+            for (let i = 1; i <= 5; i++) {
+                const result = slots[Math.floor(Math.random() * slots.length)];
+                results.push(result);
+                document.getElementById('slot' + i).innerText = result;
             }
+
+            let winnings = calculateWinnings(results, betAmount);
+            currentBalance += winnings;
+            document.getElementById('balance').innerText = currentBalance;
+
+            updateLeaderboard(currentBalance);
 
             if (winnings > 0) {
-                balance += winnings;
-                document.getElementById('balance').innerText = balance;
                 document.getElementById('winMessage').innerText = `You won $${winnings}!`;
                 document.getElementById('winMessage').style.display = 'block';
-                handleWinnings(winnings); // Update leaderboard
-                document.getElementById('winSound').play(); // Play win sound
+                setTimeout(() => {
+                    document.getElementById('winMessage').style.display = 'none';
+                }, 3000);
+                document.getElementById('winSound').play();
             } else {
-                document.getElementById('winMessage').innerText = `You lost $${bet}. Try again!`;
-                document.getElementById('winMessage').style.display = 'block';
-                document.getElementById('loseSound').play(); // Play lose sound
+                document.getElementById('loseSound').play();
             }
+        }
+
+        function calculateWinnings(results, betAmount) {
+            const winConditions = {
+                '🍒': 5,
+                '🍍': 10,
+                '🍉': 15,
+                'BAR': 20,
+                '7': 50
+            };
+
+            let matchCount = results.filter(result => result === '7').length;
+            if (matchCount === 2) return 100 * betAmount;
+            if (matchCount === 3) return 200 * betAmount;
+            if (matchCount === 4) return 400 * betAmount;
+            if (matchCount === 5) return 500 * betAmount;
+
+            return results.reduce((acc, result) => acc + (winConditions[result] || 0), 0) * betAmount;
         }
     </script>
 </body>
