@@ -3,251 +3,153 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Machine</title>
+    <title>Slot Machine Game</title>
     <style>
         body {
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #222;
-            color: white;
+            margin: 0;
+            padding: 20px;
         }
-
         .slot-machine {
             display: flex;
             justify-content: center;
-            margin: 50px auto;
+            margin: 20px 0;
         }
-
-        .column {
+        .reel {
             width: 100px;
             height: 100px;
-            margin: 0 10px;
-            font-size: 3rem;
-            background-color: #000;
-            border: 3px solid #fff;
+            border: 2px solid #333;
             display: flex;
-            justify-content: center;
             align-items: center;
-            overflow: hidden;
-            position: relative;
-            transition: border 0.3s ease;
+            justify-content: center;
+            font-size: 40px;
+            background: #f5f5f5;
+            margin: 5px;
         }
-
-        #spin-button {
-            padding: 15px 30px;
-            background-color: #ff5722;
-            border: none;
-            font-size: 1.5rem;
-            color: white;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
+        .controls {
+            margin: 20px;
         }
-
-        #spin-button:hover {
-            background-color: #e64a19;
+        .message {
+            font-size: 20px;
+            margin-top: 10px;
         }
-
-        .money-counter {
+        #balanceDisplay {
+            font-size: 24px;
+            margin-top: 10px;
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+        }
+        #leaderboard {
             margin-top: 30px;
-            font-size: 2rem;
         }
-
-        .bet-amount {
-            margin-top: 20px;
-            font-size: 1.5rem;
+        .leaderboard-title {
+            font-size: 24px;
+            font-weight: bold;
         }
-
-        input[type="number"] {
-            padding: 5px;
-            font-size: 1.5rem;
-            width: 100px;
-        }
-
-        #winKey {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border: 1px solid #ccc;
-            color: black;
-        }
-
-        .win-message {
-            font-size: 2rem;
-            color: #ffeb3b;
+        .hidden {
             display: none;
         }
-
-        .highlight {
-            border: 3px solid orange;
-        }
-
-        /* Spinning animation */
-        @keyframes spinAnimation {
-            0% { transform: translateY(0); }
-            100% { transform: translateY(-100%); }
-        }
-
-        .column .reel {
-            animation: spinAnimation 1s ease-in-out infinite;
-        }
-
-        .reel img {
-            width: 100px;
-            height: 100px;
-        }
     </style>
-    <!-- Firebase SDKs -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
-    <div>
-        <label for="username">Enter Username:</label>
-        <input type="text" id="usernameInput" placeholder="Username">
-        <button id="submitUsername">Submit</button>
+    <h1>Slot Machine Game</h1>
+
+    <div class="slot-machine">
+        <div class="reel" id="reel1">🍒</div>
+        <div class="reel" id="reel2">🍍</div>
+        <div class="reel" id="reel3">🍉</div>
+        <div class="reel" id="reel4">BAR</div>
+        <div class="reel" id="reel5">7</div>
     </div>
-    
-    <div id="slot-machine-container">
-        <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
-        <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
-        <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
 
-        <div class="slot-machine">
-            <div class="column" id="slot1"><div class="reel"><img src="path/to/cherry.png" alt="Cherry"></div></div>
-            <div class="column" id="slot2"><div class="reel"><img src="path/to/pineapple.png" alt="Pineapple"></div></div>
-            <div class="column" id="slot3"><div class="reel"><img src="path/to/watermelon.png" alt="Watermelon"></div></div>
-            <div class="column" id="slot4"><div class="reel"><img src="path/to/bar.png" alt="BAR"></div></div>
-            <div class="column" id="slot5"><div class="reel"><img src="path/to/seven.png" alt="7"></div></div>
-        </div>
-
-        <div class="bet-amount">
-            Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
-        </div>
-
-        <button id="spin-button" onclick="spin()">Spin</button>
-
-        <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
-        <div class="win-message" id="winMessage"></div>
-
-        <div id="winKey">
-            <h3>Winning Key</h3>
-            <p id="cherryWin">🍒 - $<span id="cherryValue">5</span></p>
-            <p id="pineappleWin">🍍 - $<span id="pineappleValue">10</span></p>
-            <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
-            <p id="barWin">BAR - $<span id="barValue">20</span></p>
-            <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
-        </div>
+    <div class="controls">
+        <label for="betAmount">Bet Amount: $</label>
+        <input type="number" id="betAmount" value="1" min="1">
+        <button onclick="spin()">Spin</button>
     </div>
+
+    <p id="balanceDisplay">Balance: $100</p>
+    <p id="winMessage" class="message hidden"></p>
 
     <div id="leaderboard">
-        <h2>Leaderboard</h2>
-        <ol id="leaderboardList"></ol>
+        <p class="leaderboard-title">Leaderboard</p>
+        <ul id="leaderboardList"></ul>
     </div>
 
+    <audio id="winSound" src="win-sound.mp3"></audio>
+    <audio id="loseSound" src="lose-sound.mp3"></audio>
+
     <script>
-        // Firebase configuration (Using your provided API credentials)
-        const firebaseConfig = {
-            apiKey: "AIzaSyA-YourProvidedAPIKey",  // Replace with your actual API key
-            authDomain: "slotmachineapp.firebaseapp.com",
-            databaseURL: "https://slotmachineapp.firebaseio.com",
-            projectId: "slotmachineapp",
-            storageBucket: "slotmachineapp.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456"
-        };
-
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // User Registration
-        let username = '';
-        document.getElementById('submitUsername').addEventListener('click', () => {
-            username = document.getElementById('usernameInput').value;
-            if (username) {
-                localStorage.setItem('username', username);
-                document.getElementById('usernameInput').style.display = 'none';
-                document.getElementById('submitUsername').style.display = 'none';
-                displayLeaderboard();
-            }
-        });
-
-        // Save User's Score and Update Leaderboard
-        function updateLeaderboard(winnings) {
-            if (username === '') return;
-            const userScoreRef = database.ref('leaderboard/' + username);
-            userScoreRef.set({
-                username: username,
-                score: winnings
-            });
-        }
-
-        function displayLeaderboard() {
-            const leaderboardRef = database.ref('leaderboard').orderByChild('score');
-            leaderboardRef.on('value', snapshot => {
-                const leaderboardList = document.getElementById('leaderboardList');
-                leaderboardList.innerHTML = '';
-                snapshot.forEach(childSnapshot => {
-                    const user = childSnapshot.val();
-                    const li = document.createElement('li');
-                    li.innerText = `${user.username}: $${user.score}`;
-                    leaderboardList.appendChild(li);
-                });
-            });
-        }
+        const symbols = ['🍒', '🍍', '🍉', 'BAR', '7'];
+        let balance = 100;
+        let leaderboard = [];
 
         function spin() {
-            const betAmount = parseInt(document.getElementById('betInput').value);
-            let currentBalance = parseInt(document.getElementById('balance').innerText);
-            if (betAmount > currentBalance) {
-                alert("You don't have enough balance to place this bet.");
+            const betAmount = parseInt(document.getElementById('betAmount').value);
+            if (betAmount > balance || betAmount <= 0) {
+                alert('Invalid bet amount.');
                 return;
             }
 
-            currentBalance -= betAmount;
-            document.getElementById('balance').innerText = currentBalance;
+            // Disable spin button during animation
+            document.querySelector('button').disabled = true;
 
-            const spinSound = document.getElementById('spinSound');
-            spinSound.play();
+            const reels = [];
+            for (let i = 1; i <= 5; i++) {
+                reels.push(document.getElementById(`reel${i}`));
+            }
 
-            const slots = ['🍒', '🍍', '🍉', 'BAR', '7'];
+            const spinTimes = [1000, 1200, 1400, 1600, 1800]; // Different spin times for realism
             const results = [];
 
-            for (let i = 1; i <= 5; i++) {
-                const result = slots[Math.floor(Math.random() * slots.length)];
-                results.push(result);
-                document.getElementById('slot' + i).innerHTML = result;
-            }
+            reels.forEach((reel, index) => {
+                setTimeout(() => {
+                    const result = symbols[Math.floor(Math.random() * symbols.length)];
+                    results.push(result);
+                    reel.innerText = result;
+                    if (results.length === 5) {
+                        handleResults(results, betAmount);
+                    }
+                }, spinTimes[index]);
+            });
+        }
 
-            let winnings = calculateWinnings(results, betAmount);
-            currentBalance += winnings;
-            document.getElementById('balance').innerText = currentBalance;
-
-            updateLeaderboard(currentBalance);
+        function handleResults(results, betAmount) {
+            const winnings = calculateWinnings(results, betAmount);
 
             if (winnings > 0) {
-                document.getElementById('winMessage').innerText = `You won $${winnings}!`;
-                document.getElementById('winMessage').style.display = 'block';
+                balance += winnings;
+                document.getElementById('winMessage').innerText = `You win $${winnings}!`;
+                document.getElementById('winMessage').classList.remove('hidden');
                 setTimeout(() => {
-                    document.getElementById('winMessage').style.display = 'none';
+                    document.getElementById('winMessage').classList.add('hidden');
                 }, 3000);
-                const winSound = document.getElementById('winSound');
-                winSound.play();
+                document.getElementById('winSound').play();
             } else {
-                document.getElementById('winMessage').innerText = 'You lost!';
-                document.getElementById('winMessage').style.display = 'block';
+                balance -= betAmount;
+                document.getElementById('winMessage').innerText = 'You lose!';
+                document.getElementById('winMessage').classList.remove('hidden');
                 setTimeout(() => {
-                    document.getElementById('winMessage').style.display = 'none';
+                    document.getElementById('winMessage').classList.add('hidden');
                 }, 3000);
-                const loseSound = document.getElementById('loseSound');
-                loseSound.play();
+                document.getElementById('loseSound').play();
             }
+
+            // Update balance display
+            document.getElementById('balanceDisplay').innerText = `Balance: $${balance}`;
+            
+            // Update leaderboard if balance is high
+            updateLeaderboard(balance);
+
+            // Re-enable spin button
+            document.querySelector('button').disabled = false;
         }
 
         function calculateWinnings(results, betAmount) {
+            const winningKey = Math.floor(Math.random() * 5); // Random key to keep things dynamic
             const winConditions = {
                 '🍒': 5,
                 '🍍': 10,
@@ -256,13 +158,22 @@
                 '7': 50
             };
 
-            let matchCount = results.filter(result => result === '7').length;
-            if (matchCount === 2) return 100 * betAmount;
-            if (matchCount === 3) return 200 * betAmount;
-            if (matchCount === 4) return 400 * betAmount;
-            if (matchCount === 5) return 500 * betAmount;
+            let totalWinnings = results.filter(result => result === symbols[winningKey]).length * winConditions[symbols[winningKey]] * betAmount;
 
-            return results.reduce((acc, result) => acc + (winConditions[result] || 0), 0) * betAmount;
+            return totalWinnings > 0 ? totalWinnings : 0;
+        }
+
+        function updateLeaderboard(currentBalance) {
+            leaderboard.push(currentBalance);
+            leaderboard.sort((a, b) => b - a);
+            const leaderboardList = document.getElementById('leaderboardList');
+            leaderboardList.innerHTML = ''; // Clear the list
+
+            leaderboard.slice(0, 5).forEach((score, index) => {
+                const listItem = document.createElement('li');
+                listItem.innerText = `#${index + 1}: $${score}`;
+                leaderboardList.appendChild(listItem);
+            });
         }
     </script>
 </body>
