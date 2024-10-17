@@ -3,155 +3,162 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Machine</title>
+    <title>Slot Machine Game</title>
     <style>
         body {
+            background-color: #121212;
+            color: #ff9f00;
             font-family: Arial, sans-serif;
             text-align: center;
-            background-color: #222;
-            color: white;
-            overflow: hidden;
         }
-
-        .slot-machine {
-            display: flex;
-            justify-content: center;
-            margin: 50px auto;
-        }
-
-        .column {
-            width: 100px;
-            height: 100px;
-            margin: 0 10px;
-            font-size: 3rem;
-            background-color: #000;
-            border: 3px solid #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            overflow: hidden;
-            position: relative;
-            transition: border 0.3s ease;
-        }
-
-        .highlight {
-            border: 3px solid orange;
-        }
-
-        #spin-button {
-            padding: 15px 30px;
-            background-color: #ff5722;
-            border: none;
-            font-size: 1.5rem;
-            color: white;
-            cursor: pointer;
-            margin-top: 20px;
-            transition: background-color 0.3s ease;
-        }
-
-        #spin-button:hover {
-            background-color: #e64a19;
-        }
-
-        .money-counter {
-            margin-top: 30px;
-            font-size: 2rem;
-        }
-
-        .bet-amount {
-            margin-top: 20px;
-            font-size: 1.5rem;
-        }
-
-        input[type="number"] {
-            padding: 5px;
-            font-size: 1.5rem;
-            width: 100px;
-        }
-
-        #winKey {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            background: rgba(255, 255, 255, 0.8);
-            padding: 10px;
-            border: 1px solid #ccc;
-            color: black;
-        }
-
-        .win-message {
-            font-size: 2rem;
-            color: #ffeb3b;
-            display: none;
-        }
-
-        .leaderboard-section {
+        #slot-machine {
             margin-top: 50px;
         }
-        
+        .slot {
+            display: inline-block;
+            width: 100px;
+            height: 100px;
+            border: 2px solid #ff9f00;
+            font-size: 48px;
+            line-height: 100px;
+            text-align: center;
+        }
+        #spin-button {
+            background-color: #ff9f00;
+            color: #121212;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-size: 18px;
+            margin-top: 20px;
+        }
         #leaderboard {
             margin-top: 30px;
+            color: white;
         }
-
-        ol {
-            padding-left: 0;
-            list-style-type: none;
-        }
-
-        li {
-            font-size: 1.5rem;
+        #usernameInput, #submitUsername {
+            margin-top: 20px;
         }
     </style>
-
-    <!-- Firebase SDK -->
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
 
-    <!-- Username Section -->
-    <div>
-        <label for="username">Enter Username:</label>
-        <input type="text" id="usernameInput" placeholder="Username">
+    <h1>Welcome to the Slot Machine</h1>
+
+    <div id="slot-machine">
+        <div class="slot" id="slot1">🍒</div>
+        <div class="slot" id="slot2">🍋</div>
+        <div class="slot" id="slot3">🍇</div>
+    </div>
+
+    <button id="spin-button">Spin</button>
+
+    <div id="username-section">
+        <input type="text" id="usernameInput" placeholder="Enter your username" />
         <button id="submitUsername">Submit</button>
     </div>
 
-    <!-- Slot Machine -->
-    <div id="slot-machine-container">
-        <div class="slot-machine">
-            <div class="column" id="slot1">🍒</div>
-            <div class="column" id="slot2">🍍</div>
-            <div class="column" id="slot3">🍉</div>
-            <div class="column" id="slot4">BAR</div>
-            <div class="column" id="slot5">7</div>
-        </div>
-
-        <div class="bet-amount">
-            Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100" step="1" />
-        </div>
-
-        <button id="spin-button">Spin</button>
-
-        <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
-        <div class="win-message" id="winMessage"></div>
-
-        <div id="winKey">
-            <h3>Winning Key</h3>
-            <p id="cherryWin">🍒 - $<span id="cherryValue">5</span></p>
-            <p id="pineappleWin">🍍 - $<span id="pineappleValue">10</span></p>
-            <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
-            <p id="barWin">BAR - $<span id="barValue">20</span></p>
-            <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
-        </div>
-    </div>
-
-    <!-- Leaderboard -->
     <div id="leaderboard">
         <h2>Leaderboard</h2>
-        <ol id="leaderboardList"></ol>
+        <ul id="leaderboardList"></ul>
     </div>
 
-    <script src="your-firebase-config.js"></script>
-    <script src="slot-machine.js"></script>
+    <script type="module">
+        // Import the functions you need from the SDKs you need
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
+        import { getDatabase, ref, set, get, query, orderByValue, limitToLast } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
+        
+        // Your web app's Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyALicRxGiwTyPxPt_qUGAwIXCccXAuiq5k",
+            authDomain: "bambling12.firebaseapp.com",
+            projectId: "bambling12",
+            storageBucket: "bambling12.appspot.com",
+            messagingSenderId: "336411073825",
+            appId: "1:336411073825:web:465d13c43a93bf0a637260",
+            measurementId: "G-6X71J6E66P"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+
+        let username = localStorage.getItem('username');
+
+        // Handle username submission
+        document.getElementById('submitUsername').addEventListener('click', () => {
+            const usernameInput = document.getElementById('usernameInput').value.trim();
+            if (usernameInput) {
+                username = usernameInput;
+                localStorage.setItem('username', username);
+
+                // Hide the input fields
+                document.getElementById('usernameInput').style.display = 'none';
+                document.getElementById('submitUsername').style.display = 'none';
+
+                // Display leaderboard and set up user
+                displayLeaderboard();
+            }
+        });
+
+        // Spin button functionality
+        document.getElementById('spin-button').addEventListener('click', () => {
+            const slot1 = document.getElementById('slot1');
+            const slot2 = document.getElementById('slot2');
+            const slot3 = document.getElementById('slot3');
+
+            // Example of slot symbols, can be extended
+            const symbols = ['🍒', '🍋', '🍇', 'BAR', '7'];
+
+            // Randomize slots
+            slot1.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+            slot2.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+            slot3.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+
+            // Check if the player won
+            if (slot1.innerHTML === slot2.innerHTML && slot2.innerHTML === slot3.innerHTML) {
+                alert('You win!');
+                updateLeaderboard(10);  // Add score
+            } else {
+                alert('Try again!');
+            }
+        });
+
+        // Update leaderboard in Firebase
+        function updateLeaderboard(score) {
+            if (username) {
+                const leaderboardRef = ref(db, 'leaderboard/' + username);
+                get(leaderboardRef).then((snapshot) => {
+                    const currentScore = snapshot.val() || 0;
+                    set(leaderboardRef, currentScore + score);
+                    displayLeaderboard();
+                });
+            }
+        }
+
+        // Display leaderboard
+        function displayLeaderboard() {
+            const leaderboardRef = query(ref(db, 'leaderboard'), orderByValue(), limitToLast(10));
+            get(leaderboardRef).then((snapshot) => {
+                const leaderboardList = document.getElementById('leaderboardList');
+                leaderboardList.innerHTML = '';
+                snapshot.forEach((childSnapshot) => {
+                    const username = childSnapshot.key;
+                    const score = childSnapshot.val();
+                    const listItem = document.createElement('li');
+                    listItem.innerText = `${username}: ${score} points`;
+                    leaderboardList.appendChild(listItem);
+                });
+            });
+        }
+
+        // If username already exists, hide input
+        if (username) {
+            document.getElementById('usernameInput').style.display = 'none';
+            document.getElementById('submitUsername').style.display = 'none';
+            displayLeaderboard();
+        }
+    </script>
+
 </body>
 </html>
