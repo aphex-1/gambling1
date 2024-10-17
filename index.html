@@ -38,6 +38,11 @@
         }
         #usernameInput, #submitUsername {
             margin-top: 20px;
+            background-color: #121212;
+            color: #ff9f00;
+            border: 2px solid #ff9f00;
+            padding: 10px;
+            font-size: 16px;
         }
     </style>
 </head>
@@ -55,7 +60,7 @@
 
     <div id="username-section">
         <input type="text" id="usernameInput" placeholder="Enter your username" />
-        <button id="submitUsername">Submit</button>
+        <button id="submitUsername">Submit Username</button>
     </div>
 
     <div id="leaderboard">
@@ -64,11 +69,11 @@
     </div>
 
     <script type="module">
-        // Import the functions you need from the SDKs you need
+        // Import the Firebase SDKs
         import { initializeApp } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js";
         import { getDatabase, ref, set, get, query, orderByValue, limitToLast } from "https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js";
         
-        // Your web app's Firebase configuration
+        // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyALicRxGiwTyPxPt_qUGAwIXCccXAuiq5k",
             authDomain: "bambling12.firebaseapp.com",
@@ -92,11 +97,11 @@
                 username = usernameInput;
                 localStorage.setItem('username', username);
 
-                // Hide the input fields
+                // Hide the username input and button
                 document.getElementById('usernameInput').style.display = 'none';
                 document.getElementById('submitUsername').style.display = 'none';
 
-                // Display leaderboard and set up user
+                // Display leaderboard and update user state
                 displayLeaderboard();
             }
         });
@@ -107,7 +112,7 @@
             const slot2 = document.getElementById('slot2');
             const slot3 = document.getElementById('slot3');
 
-            // Example of slot symbols, can be extended
+            // Slot symbols (you can add more symbols)
             const symbols = ['🍒', '🍋', '🍇', 'BAR', '7'];
 
             // Randomize slots
@@ -118,7 +123,7 @@
             // Check if the player won
             if (slot1.innerHTML === slot2.innerHTML && slot2.innerHTML === slot3.innerHTML) {
                 alert('You win!');
-                updateLeaderboard(10);  // Add score
+                updateLeaderboard(10);  // Add 10 points to score
             } else {
                 alert('Try again!');
             }
@@ -152,7 +157,7 @@
             });
         }
 
-        // If username already exists, hide input
+        // If username already exists, hide input and display leaderboard
         if (username) {
             document.getElementById('usernameInput').style.display = 'none';
             document.getElementById('submitUsername').style.display = 'none';
