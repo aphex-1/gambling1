@@ -43,6 +43,7 @@
             cursor: pointer;
             margin-top: 20px;
             transition: background-color 0.3s ease;
+            display: none; /* Hide until username is submitted */
         }
 
         #spin-button:hover {
@@ -84,19 +85,23 @@
         .highlight {
             border: 3px solid orange;
         }
+
+        #username-container {
+            margin-top: 20px;
+        }
     </style>
     <!-- Firebase SDKs -->
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
-    <div>
+    <div id="username-container">
         <label for="username">Enter Username:</label>
         <input type="text" id="usernameInput" placeholder="Username">
         <button id="submitUsername">Submit</button>
     </div>
     
-    <div id="slot-machine-container">
+    <div id="slot-machine-container" style="display:none;"> <!-- Initially hidden until username is submitted -->
         <audio id="spinSound" src="path/to/spinning-sound.mp3" preload="auto"></audio>
         <audio id="winSound" src="path/to/win-sound.mp3" preload="auto"></audio>
         <audio id="loseSound" src="path/to/lose-sound.mp3" preload="auto"></audio>
@@ -126,14 +131,10 @@
             <p id="watermelonWin">🍉 - $<span id="watermelonValue">15</span></p>
             <p id="barWin">BAR - $<span id="barValue">20</span></p>
             <p id="sevenWin">7 - $<span id="sevenValue">50</span></p>
-            <p id="twoSevensWin">Two 7's - $<span id="twoSevensValue">100</span></p>
-            <p id="threeSevensWin">Three 7's - $<span id="threeSevensValue">200</span></p>
-            <p id="fourSevensWin">Four 7's - $<span id="fourSevensValue">400</span></p>
-            <p id="fiveSevensWin">Five 7's - $<span id="fiveSevensValue">500</span></p>
         </div>
     </div>
 
-    <div id="leaderboard">
+    <div id="leaderboard" style="display:none;"> <!-- Initially hidden until username is submitted -->
         <h2>Leaderboard</h2>
         <ol id="leaderboardList"></ol>
     </div>
@@ -141,13 +142,13 @@
     <script>
         // Firebase configuration
         const firebaseConfig = {
-            apiKey: "your-api-key",
-            authDomain: "your-project-id.firebaseapp.com",
-            databaseURL: "https://your-project-id.firebaseio.com",
-            projectId: "your-project-id",
-            storageBucket: "your-project-id.appspot.com",
-            messagingSenderId: "your-sender-id",
-            appId: "your-app-id"
+            apiKey: "AIzaSyALicRxGiwTyPxPt_qUGAwIXCccXAuiq5k",
+            authDomain: "bambling12.firebaseapp.com",
+            projectId: "bambling12",
+            storageBucket: "bambling12.appspot.com",
+            messagingSenderId: "336411073825",
+            appId: "1:336411073825:web:465d13c43a93bf0a637260",
+            measurementId: "G-6X71J6E66P"
         };
 
         // Initialize Firebase
@@ -160,9 +161,13 @@
             username = document.getElementById('usernameInput').value;
             if (username) {
                 localStorage.setItem('username', username);
-                document.getElementById('usernameInput').style.display = 'none';
-                document.getElementById('submitUsername').style.display = 'none';
-                displayLeaderboard();
+                document.getElementById('username-container').style.display = 'none'; // Hide username input after submission
+                document.getElementById('slot-machine-container').style.display = 'block'; // Show slot machine after submission
+                document.getElementById('spin-button').style.display = 'inline-block'; // Show spin button
+                document.getElementById('leaderboard').style.display = 'block'; // Show leaderboard after submission
+                displayLeaderboard(); // Load leaderboard
+            } else {
+                alert("Please enter a username.");
             }
         });
 
@@ -199,11 +204,6 @@
             });
         }
 
-        // Call updateLeaderboard() when the user wins
-        function handleWinnings(winnings) {
-            updateLeaderboard(winnings);
-        }
-
         // Slot machine game logic
         let balance = 100; // Starting balance
         let bet = 10; // Default bet amount
@@ -214,22 +214,11 @@
         const SPIN_INTERVAL = 100; // Interval for updating slots
         const WINNING_ODDS = 0.2; // Adjust this value (0 to 1) to change winning odds
 
-        // Start background music
-        document.getElementById('bgMusic').play();
-
         function spin() {
-            // Get bet amount
-            bet = parseInt(document.getElementById('betInput').value, 10);
-            
             // Ensure minimum bet is $1
-            if (bet < 1) {
-                alert("Minimum bet is $1");
-                return;
-            }
-
-            // Check if the bet is more than balance
-            if (bet > balance) {
-                alert("You can't bet more than your current balance.");
+            bet = parseInt(document.getElementById('betInput').value, 10);
+            if (bet < 1 || bet > balance) {
+                alert("Invalid bet amount.");
                 return;
             }
 
@@ -263,7 +252,7 @@
                 document.getElementById('balance').innerText = balance;
 
                 if (winnings > 0) {
-                    handleWinnings(winnings); // Update leaderboard
+                    updateLeaderboard(winnings); // Update leaderboard
                     const winSound = document.getElementById('winSound');
                     winSound.play();
                     displayWinMessage(winnings);
