@@ -5,87 +5,194 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Slot Machine</title>
     <style>
-        /* Same styles as before */
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            background-color: #222;
+            color: white;
+        }
+
+        .slot-machine {
+            display: flex;
+            justify-content: center;
+            margin: 50px auto;
+        }
+
+        .column {
+            width: 100px;
+            height: 100px;
+            margin: 0 10px;
+            font-size: 3rem;
+            background-color: #000;
+            border: 3px solid #fff;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        #spin-button {
+            padding: 15px 30px;
+            background-color: #ff5722;
+            border: none;
+            font-size: 1.5rem;
+            color: white;
+            cursor: pointer;
+            margin-top: 20px;
+        }
+
+        #spin-button:hover {
+            background-color: #e64a19;
+        }
+
+        .money-counter, .bet-amount {
+            margin-top: 20px;
+            font-size: 1.5rem;
+        }
+
+        input[type="number"] {
+            padding: 5px;
+            font-size: 1.5rem;
+            width: 80px;
+        }
+
+        .loan-section {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            background: #444;
+            padding: 15px;
+            border-radius: 5px;
+        }
+
+        .win-message {
+            font-size: 2rem;
+            color: #ffeb3b;
+            display: none;
+        }
     </style>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/9.0.0/firebase-database.js"></script>
 </head>
 <body>
-    <!-- Username Input Section -->
-    <div id="username-container">
-        <label for="username">Enter Username:</label>
-        <input type="text" id="usernameInput" placeholder="Username">
-        <button id="submitUsername">Submit</button>
-    </div>
-    
-    <!-- Slot Machine Section (Initially hidden) -->
-    <div id="slot-machine-container" style="display:none;">
-        <div class="slot-machine">
-            <div class="column" id="slot1">🍒</div>
-            <div class="column" id="slot2">🍍</div>
-            <div class="column" id="slot3">🍉</div>
-            <div class="column" id="slot4">BAR</div>
-            <div class="column" id="slot5">7</div>
-        </div>
-        <button id="spin-button" style="display:none;">Spin</button>
+    <div class="loan-section">
+        <h3>Loan System</h3>
+        <button onclick="takeLoan()">Take $500 Loan</button>
+        <p>Loan Balance: $<span id="loanBalance">0</span></p>
+        <p>Spins Left to Repay: <span id="loanSpins">0</span></p>
     </div>
 
-    <!-- Leaderboard Section (Initially hidden) -->
-    <div id="leaderboard" style="display:none;">
-        <h2>Leaderboard</h2>
-        <ol id="leaderboardList"></ol>
+    <div class="slot-machine">
+        <div class="column" id="slot1">🍒</div>
+        <div class="column" id="slot2">🍍</div>
+        <div class="column" id="slot3">🍉</div>
     </div>
+
+    <div class="bet-amount">
+        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="100">
+    </div>
+
+    <button id="spin-button" onclick="spin()">Spin</button>
+
+    <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
+    <div class="win-message" id="winMessage"></div>
 
     <script>
-        // Firebase configuration (replace with your actual Firebase keys)
-        const firebaseConfig = {
-            apiKey: "AIzaSyALicRxGiwTyPxPt_qUGAwIXCccXAuiq5k",
-            authDomain: "bambling12.firebaseapp.com",
-            projectId: "bambling12",
-            storageBucket: "bambling12.appspot.com",
-            messagingSenderId: "336411073825",
-            appId: "1:336411073825:web:465d13c43a93bf0a637260",
-            measurementId: "G-6X71J6E66P"
-        };
+        let balance = 100;
+        let loanBalance = 0;
+        let loanSpinsLeft = 0;
+        let spinning = false;
 
-        // Initialize Firebase
-        const app = firebase.initializeApp(firebaseConfig);
-        const database = firebase.database();
-
-        // Handle Username Submission
-        document.getElementById('submitUsername').addEventListener('click', () => {
-            const username = document.getElementById('usernameInput').value;
-
-            if (username.trim() !== "") {
-                localStorage.setItem('username', username);
-
-                // Hide username input and show the slot machine and leaderboard
-                document.getElementById('username-container').style.display = 'none';
-                document.getElementById('slot-machine-container').style.display = 'block';
-                document.getElementById('leaderboard').style.display = 'block';
-                document.getElementById('spin-button').style.display = 'inline-block';
-
-                displayLeaderboard(); // Load the leaderboard
-            } else {
-                alert("Please enter a valid username.");
+        function takeLoan() {
+            if (loanBalance > 0) {
+                alert("You already have an unpaid loan!");
+                return;
             }
-        });
+            loanBalance = 500;
+            loanSpinsLeft = 5;
+            balance += 500;
+            updateUI();
+        }
 
-        // Function to display leaderboard
-        function displayLeaderboard() {
-            const leaderboardRef = database.ref('leaderboard');
-            leaderboardRef.once('value', (snapshot) => {
-                const leaderboard = snapshot.val() || {};
-                const sortedLeaderboard = Object.entries(leaderboard).sort((a, b) => b[1] - a[1]);
+        function repayLoan() {
+            if (loanSpinsLeft === 0 && loanBalance > 0) {
+                if (balance >= 550) {
+                    balance -= 550;
+                    loanBalance = 0;
+                } else {
+                    alert("You don't have enough money to repay the loan! You lose.");
+                    balance = 0;
+                }
+                updateUI();
+            }
+        }
 
-                const leaderboardList = document.getElementById('leaderboardList');
-                leaderboardList.innerHTML = '';
-                sortedLeaderboard.forEach(([user, score]) => {
-                    const li = document.createElement('li');
-                    li.innerText = `${user}: $${score}`;
-                    leaderboardList.appendChild(li);
-                });
-            });
+        function updateUI() {
+            document.getElementById("balance").innerText = balance;
+            document.getElementById("loanBalance").innerText = loanBalance;
+            document.getElementById("loanSpins").innerText = loanSpinsLeft;
+        }
+
+        function spin() {
+            if (spinning) return;
+
+            let bet = parseInt(document.getElementById("betInput").value);
+            if (bet < 1 || bet > balance) {
+                alert("Invalid bet amount.");
+                return;
+            }
+
+            balance -= bet;
+            spinning = true;
+            let slots = ["🍒", "🍍", "🍉", "BAR", "7"];
+            let results = [];
+
+            let spinInterval = setInterval(() => {
+                for (let i = 1; i <= 3; i++) {
+                    let slot = document.getElementById("slot" + i);
+                    let symbol = slots[Math.floor(Math.random() * slots.length)];
+                    slot.innerText = symbol;
+                    results[i - 1] = symbol;
+                }
+            }, 100);
+
+            setTimeout(() => {
+                clearInterval(spinInterval);
+                checkWin(results, bet);
+                spinning = false;
+
+                if (loanSpinsLeft > 0) {
+                    loanSpinsLeft--;
+                    if (loanSpinsLeft === 0) repayLoan();
+                }
+
+                updateUI();
+            }, 1500);
+        }
+
+        function checkWin(results, bet) {
+            let winMessage = document.getElementById("winMessage");
+            winMessage.style.display = "none";
+
+            let winnings = 0;
+            let winTable = {
+                "🍒🍒🍒": bet * 2,
+                "🍍🍍🍍": bet * 3,
+                "🍉🍉🍉": bet * 5,
+                "BARBARBAR": bet * 10,
+                "777": bet * 50
+            };
+
+            let key = results.join("");
+            if (winTable[key]) {
+                winnings = winTable[key];
+            }
+
+            if (winnings > 0) {
+                balance += winnings;
+                winMessage.innerText = `You won $${winnings}!`;
+                winMessage.style.display = "block";
+            } else {
+                winMessage.innerText = `You lost $${bet}.`;
+                winMessage.style.display = "block";
+            }
         }
     </script>
 </body>
