@@ -1,206 +1,134 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Slot Machine</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            background-color: #222;
-            color: white;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Slot Machine</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      text-align: center;
+      background-color: #222;
+      color: white;
+      position: relative;
+      margin: 0;
+      padding: 0;
+    }
 
-        .slot-machine {
-            display: flex;
-            justify-content: center;
-            margin: 50px auto;
-        }
+    .slot-machine {
+      display: flex;
+      justify-content: center;
+      margin: 50px auto;
+    }
 
-        .column {
-            width: 100px;
-            height: 100px;
-            margin: 0 10px;
-            font-size: 3rem;
-            background-color: #000;
-            border: 3px solid #fff;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
+    .column {
+      width: 100px;
+      height: 100px;
+      margin: 0 10px;
+      font-size: 3rem;
+      background-color: #000;
+      border: 3px solid #fff;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
 
-        #spin-button {
-            padding: 15px 30px;
-            background-color: #ff5722;
-            border: none;
-            font-size: 1.5rem;
-            color: white;
-            cursor: pointer;
-            margin-top: 20px;
-        }
+    #spin-button {
+      padding: 15px 30px;
+      background-color: #ff5722;
+      border: none;
+      font-size: 1.5rem;
+      color: white;
+      cursor: pointer;
+      margin-top: 20px;
+    }
 
-        #spin-button:hover {
-            background-color: #e64a19;
-        }
+    #spin-button:hover {
+      background-color: #e64a19;
+    }
 
-        .money-counter, .bet-amount {
-            margin-top: 20px;
-            font-size: 1.5rem;
-        }
+    .money-counter, .bet-amount {
+      margin-top: 20px;
+      font-size: 1.5rem;
+    }
 
-        input[type="number"] {
-            padding: 5px;
-            font-size: 1.5rem;
-            width: 80px;
-        }
+    input[type="number"] {
+      padding: 5px;
+      font-size: 1.5rem;
+      width: 80px;
+    }
 
-        .loan-section {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            background: #444;
-            padding: 15px;
-            border-radius: 5px;
-        }
+    .loan-section {
+      position: absolute;
+      top: 20px;
+      left: 20px;
+      background: #444;
+      padding: 15px;
+      border-radius: 5px;
+    }
 
-        .win-message {
-            font-size: 2rem;
-            color: #ffeb3b;
-            display: none;
-        }
-    </style>
-</head>
-<body>
-    <div class="loan-section">
-        <h3>Loan System</h3>
-        <button onclick="takeLoan()">Take $500 Loan</button>
-        <p>Loan Balance: $<span id="loanBalance">0</span></p>
-        <p>Spins Left to Repay: <span id="loanSpins">0</span></p>
-    </div>
+    .win-message {
+      font-size: 2rem;
+      color: #ffeb3b;
+      display: none;
+      margin-top: 20px;
+    }
 
-    <div class="slot-machine">
-        <div class="column" id="slot1">🍒</div>
-        <div class="column" id="slot2">🍍</div>
-        <div class="column" id="slot3">🍉</div>
-    </div>
+    /* Comical winning animation */
+    .winning-animation {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      font-size: 5rem;
+      color: #ffeb3b;
+      opacity: 0;
+      pointer-events: none;
+      z-index: 999;
+    }
 
-    <div class="bet-amount">
-        Bet Amount: $<input type="number" id="betInput" value="10" min="1" max="1000">
-    </div>
+    .animate-win {
+      animation: winPop 2s ease-out forwards;
+    }
 
-    <button id="spin-button" onclick="spin()">Spin</button>
+    @keyframes winPop {
+      0% {
+        transform: translate(-50%, -50%) scale(0.1) rotate(0deg);
+        opacity: 0;
+      }
+      50% {
+        transform: translate(-50%, -50%) scale(1.8) rotate(15deg);
+        opacity: 1;
+      }
+      100% {
+        transform: translate(-50%, -50%) scale(1) rotate(0deg);
+        opacity: 0;
+      }
+    }
 
-    <div class="money-counter">Current Balance: $<span id="balance">100</span></div>
-    <div class="win-message" id="winMessage"></div>
+    /* Payout Key on the right-hand side */
+    .win-key {
+      position: fixed;
+      top: 100px;
+      right: 20px;
+      background: rgba(0, 0, 0, 0.8);
+      border: 2px solid #fff;
+      border-radius: 10px;
+      padding: 20px;
+      width: 220px;
+      text-align: left;
+    }
 
-    <script>
-        let balance = 100;
-        let loanBalance = 0;
-        let loanSpinsLeft = 0;
-        let spinning = false;
+    .win-key h3 {
+      margin-top: 0;
+    }
 
-        function takeLoan() {
-            if (loanBalance > 0) {
-                alert("You already have an unpaid loan!");
-                return;
-            }
-            loanBalance = 500;
-            loanSpinsLeft = 5;
-            balance += 500;
-            updateUI();
-        }
+    .win-key ul {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+    }
 
-        function repayLoan() {
-            if (loanSpinsLeft === 0 && loanBalance > 0) {
-                if (balance >= 550) {
-                    balance -= 550;
-                    loanBalance = 0;
-                } else {
-                    alert("You don't have enough money to repay the loan! You lose.");
-                    balance = 0;
-                }
-                updateUI();
-            }
-        }
-
-        function updateUI() {
-            document.getElementById("balance").innerText = balance;
-            document.getElementById("loanBalance").innerText = loanBalance;
-            document.getElementById("loanSpins").innerText = loanSpinsLeft;
-        }
-
-        function spin() {
-            if (spinning) return;
-
-            let bet = parseInt(document.getElementById("betInput").value);
-            if (bet < 1 || bet > balance) {
-                alert("Invalid bet amount.");
-                return;
-            }
-
-            balance -= bet;
-            spinning = true;
-            let slots = ["🍒", "🍍", "🍉", "BAR", "7"];
-            let results = [];
-
-            let spinInterval = setInterval(() => {
-                for (let i = 1; i <= 3; i++) {
-                    let slot = document.getElementById("slot" + i);
-                    let symbol = slots[Math.floor(Math.random() * slots.length)];
-                    slot.innerText = symbol;
-                    results[i - 1] = symbol;
-                }
-            }, 100);
-
-            setTimeout(() => {
-                clearInterval(spinInterval);
-                checkWin(results, bet);
-                spinning = false;
-
-                if (loanSpinsLeft > 0) {
-                    loanSpinsLeft--;
-                    if (loanSpinsLeft === 0) repayLoan();
-                }
-
-                updateUI();
-            }, 1500);
-        }
-
-        function checkWin(results, bet) {
-            let winMessage = document.getElementById("winMessage");
-            winMessage.style.display = "none";
-
-            let winnings = 0;
-            let winTable = {
-                "🍒🍒🍒": bet * 2,
-                "🍍🍍🍍": bet * 3,
-                "🍉🍉🍉": bet * 5,
-                "BARBARBAR": bet * 10,
-                "777": bet * 50
-            };
-
-            let key = results.join("");
-            if (winTable[key]) {
-                winnings = winTable[key];
-            } 
-            // New bonus condition: if either adjacent pair matches (but not all three), 
-            // then with a 10% chance, award a modest bonus win.
-            else if ((results[0] === results[1] || results[1] === results[2]) && results[0] !== results[2]) {
-                if (Math.random() < 0.1) {
-                    winnings = Math.round(bet * 1.2);
-                }
-            }
-
-            if (winnings > 0) {
-                balance += winnings;
-                winMessage.innerText = `You won $${winnings}!`;
-                winMessage.style.display = "block";
-            } else {
-                winMessage.innerText = `You lost $${bet}.`;
-                winMessage.style.display = "block";
-            }
-        }
-    </script>
-</body>
-</html>
+    .win-key li {
+      margin-bottom: 10px;
+      font-size: 0.9
